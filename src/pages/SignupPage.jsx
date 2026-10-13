@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
-  Network, 
   User, 
   Mail, 
   Lock, 
   GraduationCap, 
   Code2, 
   Clock, 
-  Sparkles, 
   ArrowRight, 
-  AlertCircle,
-  CheckCircle2 
+  AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
@@ -28,11 +25,10 @@ export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [university, setUniversity] = useState('');
-  const [cohort, setCohort] = useState('Capstone 2026');
+  const [cohort, setCohort] = useState('');
   const [niche, setNiche] = useState('Full-Stack Engineering');
-  const [skills, setSkills] = useState('React, Node.js, TypeScript, Tailwind');
+  const [skills, setSkills] = useState('');
   const [availability, setAvailability] = useState('15-20 hrs/week');
-  const [bio, setBio] = useState('');
 
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -63,8 +59,7 @@ export default function SignupPage() {
         cohort,
         niche,
         skills,
-        availability,
-        bio: bio || `Student at ${university} specializing in ${niche}. Looking for capstone collaborators.`
+        availability
       });
 
       if (!res.success) {
@@ -84,26 +79,20 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen pt-28 pb-16 px-4 flex items-center justify-center relative">
-      {/* Background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 rounded-full pointer-events-none" />
-
       <Card className="w-full max-w-xl p-2 sm:p-4 border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 shadow-inner">
-            <Sparkles className="w-6 h-6 text-gradient" />
-          </div>
+        <CardHeader className="pb-6">
           <CardTitle className="text-2xl sm:text-3xl font-bold font-heading">
-            Create Student Profile
+            Create an account
           </CardTitle>
           <CardDescription className="text-sm">
-            Join CollabForge with your academic profile and begin algorithmic matching with capstone peers.
+            Create a profile to find projects and collaborators.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {!isSupabaseConfigured && (
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
-              Account creation requires a configured Supabase project and the database schema.
+              Sign-up is currently unavailable. Please try again later.
             </div>
           )}
 
@@ -199,7 +188,7 @@ export default function SignupPage() {
                 </label>
                 <Input
                   type="text"
-                  placeholder="e.g. Senior Capstone 2026"
+                  placeholder="e.g. Class of 2027"
                   value={cohort}
                   onChange={(e) => setCohort(e.target.value)}
                 />
@@ -247,33 +236,33 @@ export default function SignupPage() {
 
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                Technical Skills (comma separated)
+                Skills (optional)
               </label>
               <div className="relative">
                 <Code2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                 <Input
                   type="text"
-                  placeholder="e.g. React, Node.js, MongoDB, Docker, Python, PyTorch"
+                  placeholder="e.g. React, writing, research"
                   value={skills}
                   onChange={(e) => setSkills(e.target.value)}
                   className="pl-10"
                 />
               </div>
               <span className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1 block">
-                Ingested directly by the Cosine Similarity & Jaccard Index matchmaker.
+                Add a few skills so people can find you.
               </span>
             </div>
 
             <Button type="submit" variant="gradient" className="w-full mt-4" disabled={loading || !isSupabaseConfigured}>
-              {loading ? 'Creating Profile...' : 'Complete Profile & Begin Matching'} <ArrowRight className="w-4 h-4 ml-1.5" />
+              {loading ? 'Creating account...' : 'Create account'} <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </form>
         </CardContent>
 
         <CardFooter className="justify-center text-xs text-zinc-500 pt-2 pb-4">
-          Already registered?{' '}
+          Already have an account?{' '}
           <Link to="/login" className="text-indigo-600 dark:text-indigo-400 font-semibold ml-1 hover:underline">
-            Sign In Here
+            Sign in
           </Link>
         </CardFooter>
       </Card>

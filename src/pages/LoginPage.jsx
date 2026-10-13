@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Network, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 import { Button } from '../components/ui/button';
@@ -74,26 +74,20 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen pt-28 pb-16 px-4 flex items-center justify-center relative">
-      {/* Background glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-tr from-indigo-500/20 via-purple-500/20 to-pink-500/20 blur-3xl -z-10 rounded-full pointer-events-none" />
-
       <Card className="w-full max-w-md p-2 sm:p-4 border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-2xl">
-        <CardHeader className="text-center pb-6">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 shadow-inner">
-            <Network className="w-6 h-6 text-gradient" />
-          </div>
+        <CardHeader className="pb-6">
           <CardTitle className="text-2xl sm:text-3xl font-bold font-heading">
             Welcome Back
           </CardTitle>
           <CardDescription className="text-sm">
-            Sign in to access your capstone team, project recommendations, and collaboration requests.
+            Sign in to see your projects and messages.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
           {!isSupabaseConfigured && (
             <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
-              Real sign-in is not enabled yet. Configure the Supabase URL and anon key, then apply the database schema.
+              Sign-in is currently unavailable. Please try again later.
             </div>
           )}
 
@@ -134,7 +128,7 @@ export default function LoginPage() {
                   Password
                 </label>
                 <button type="button" onClick={handlePasswordReset} disabled={loading || !isSupabaseConfigured} className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-50">
-                  Forgot?
+                  Forgot password?
                 </button>
               </div>
               <div className="relative">
@@ -161,7 +155,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
             </div>
             <span className="relative px-3 bg-white dark:bg-zinc-900 text-xs text-zinc-500 uppercase tracking-wider">
-              Or continue with
+              Or use
             </span>
           </div>
 
@@ -173,7 +167,7 @@ export default function LoginPage() {
               disabled={loading || !isSupabaseConfigured}
               className="text-xs font-medium"
             >
-              GitHub Auth
+              GitHub
             </Button>
             <Button 
               type="button" 
@@ -182,16 +176,16 @@ export default function LoginPage() {
               disabled={loading || !isSupabaseConfigured}
               className="text-xs font-medium"
             >
-              Google Auth
+              Google
             </Button>
           </div>
 
         </CardContent>
 
         <CardFooter className="justify-center text-xs text-zinc-500 pt-2 pb-4">
-          Don't have a student profile yet?{' '}
+          New here?{' '}
           <Link to="/signup" className="text-indigo-600 dark:text-indigo-400 font-semibold ml-1 hover:underline">
-            Sign Up Now
+            Create an account
           </Link>
         </CardFooter>
       </Card>

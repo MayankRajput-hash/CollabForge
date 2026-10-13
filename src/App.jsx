@@ -35,7 +35,7 @@ function ProtectedRoute({ children }) {
 function MainApp() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('collabforge_theme');
-    return saved ? saved === 'dark' : true; // Default to dark mode for rich aesthetics
+    return saved ? saved === 'dark' : false;
   });
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -58,17 +58,15 @@ function MainApp() {
   };
 
   return (
-    <div className="app-container min-h-screen flex flex-col bg-zinc-50 dark:bg-[#090a10] text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
+    <div className="app-container min-h-screen flex flex-col bg-white dark:bg-[#191919] text-zinc-900 dark:text-zinc-50 transition-colors duration-300">
       <Navbar 
         isDarkMode={isDarkMode} 
         setIsDarkMode={setIsDarkMode} 
-        onOpenAuth={handleOpenAuth}
         onOpenCreateProject={() => setCreateProjectModalOpen(true)}
       />
 
       <main className="flex-1">
         <Routes>
-          {/* Step 1: Responsive Landing Page */}
           <Route 
             path="/" 
             element={
@@ -79,12 +77,10 @@ function MainApp() {
             } 
           />
 
-          {/* Step 2 & 3: Login and Signup with Supabase Auth */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/update-password" element={<UpdatePasswordPage />} />
 
-          {/* Step 4: Student Profile Page */}
           <Route 
             path="/profile" 
             element={<ProtectedRoute>
@@ -95,10 +91,8 @@ function MainApp() {
             </ProtectedRoute>} 
           />
 
-          {/* Step 5: Project Posting Page */}
           <Route path="/create-project" element={<ProtectedRoute><CreateProjectPage /></ProtectedRoute>} />
 
-          {/* Step 6: Project Discovery Page */}
           <Route 
             path="/projects" 
             element={
@@ -109,7 +103,6 @@ function MainApp() {
             } 
           />
 
-          {/* Step 7: Teammate Matching */}
           <Route 
             path="/teammates" 
             element={<TeammatesPage onOpenAuth={handleOpenAuth} />} 

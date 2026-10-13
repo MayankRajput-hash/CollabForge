@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { X, Sparkles, User, Mail, GraduationCap, Code2, Clock, CheckCircle } from 'lucide-react';
+import { X, User, Mail, GraduationCap, Code2, Clock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 
 export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
-  const { signUp, login, users } = useAuth();
+  const { signUp, login } = useAuth();
   const { showToast } = useProjects();
   const [isSignUp, setIsSignUp] = useState(initialMode === 'signup');
 
@@ -12,11 +12,10 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [university, setUniversity] = useState('');
-  const [cohort, setCohort] = useState('Capstone 2026');
+  const [cohort, setCohort] = useState('');
   const [niche, setNiche] = useState('Full-Stack Engineering');
   const [skills, setSkills] = useState('');
   const [availability, setAvailability] = useState('15-20 hrs/week');
-  const [bio, setBio] = useState('');
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
@@ -38,8 +37,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
         cohort,
         niche,
         skills,
-        availability,
-        bio: bio || `Student at ${university} focusing on ${niche}. Looking for ambitious capstone collaborators.`
+        availability
       });
 
       showToast(`Welcome to CollabForge, ${name}! Your profile is ready.`);
@@ -59,14 +57,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
     }
   };
 
-  const handleQuickLogin = (demoEmail) => {
-    const res = login(demoEmail);
-    if (res.success) {
-      showToast(`Logged in as ${res.user.name}!`);
-      onClose();
-    }
-  };
-
   return (
     <div style={{
       position: 'fixed',
@@ -74,20 +64,18 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
       padding: '1.5rem'
     }}>
-      <div className="glass-panel" style={{
+      <div className="glass-panel responsive-modal-content" style={{
         width: '100%',
         maxWidth: '560px',
         maxHeight: '90vh',
         overflowY: 'auto',
-        padding: '2.5rem',
         position: 'relative',
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         border: '1px solid var(--glass-border)'
@@ -108,17 +96,14 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
         </button>
 
         {/* Modal Header */}
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', padding: '0.6rem', borderRadius: '12px', background: 'var(--card-bg)', marginBottom: '0.8rem' }}>
-            <Sparkles className="text-gradient" size={28} />
-          </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-            {isSignUp ? 'Create Student Profile' : 'Welcome Back'}
+        <div style={{ marginBottom: '1.5rem', paddingRight: '2rem' }}>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 700, marginBottom: '0.4rem' }}>
+            {isSignUp ? 'Create an account' : 'Sign in'}
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            {isSignUp 
-              ? 'Join CollabForge to showcase your capstone portfolio and match with peers.' 
-              : 'Sign in to access your capstone team and collaboration requests.'}
+            {isSignUp
+              ? 'Create a profile to find projects and collaborators.'
+              : 'Sign in to see your projects and messages.'}
           </p>
         </div>
 
@@ -157,7 +142,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="modal-form-grid" style={{ gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
                     University / College *
@@ -190,7 +175,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="modal-form-grid" style={{ gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
                     Technical Niche
@@ -233,7 +218,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
 
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                  Skills (comma separated)
+                  Skills (optional)
                 </label>
                 <div style={{ position: 'relative' }}>
                   <Code2 size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
@@ -246,9 +231,6 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
                     style={{ paddingLeft: '2.5rem' }}
                   />
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                  These skills are ingested directly into the Cosine Similarity & Jaccard matching models.
-                </span>
               </div>
             </>
           )}
@@ -272,61 +254,30 @@ export default function AuthModal({ isOpen, onClose, initialMode = 'signup' }) {
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem', padding: '0.9rem' }}>
-            {isSignUp ? 'Create Profile & Start Matching' : 'Sign In'}
+            {isSignUp ? 'Create account' : 'Sign in'}
           </button>
         </form>
-
-        {/* Quick Demo Logins */}
-        <div style={{ marginTop: '1.5rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1.2rem' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', marginBottom: '0.8rem' }}>
-            Or quickly test the platform as an existing student persona:
-          </p>
-          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
-            {users.slice(0, 3).map(u => (
-              <button
-                key={u.id}
-                type="button"
-                onClick={() => handleQuickLogin(u.email)}
-                style={{
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--glass-border)',
-                  color: 'var(--text-primary)',
-                  padding: '0.35rem 0.75rem',
-                  borderRadius: '999px',
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem'
-                }}
-              >
-                <CheckCircle size={14} className="text-gradient" />
-                {u.name} ({u.niche.split(' ')[0]})
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Mode Toggle */}
         <div style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
           {isSignUp ? (
             <>
-              Already have a student profile?{' '}
+              Already have an account?{' '}
               <button 
                 type="button"
                 onClick={() => { setIsSignUp(false); setError(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-1)', fontWeight: 600, cursor: 'pointer' }}>
-                Sign In
+                Sign in
               </button>
             </>
           ) : (
             <>
-              New to CollabForge?{' '}
+              New here?{' '}
               <button 
                 type="button"
                 onClick={() => { setIsSignUp(true); setError(''); }}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-1)', fontWeight: 600, cursor: 'pointer' }}>
-                Create a Profile
+                Create account
               </button>
             </>
           )}

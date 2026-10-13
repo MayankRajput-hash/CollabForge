@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   User, 
-  Mail, 
   GraduationCap, 
   Clock, 
-  CheckCircle, 
   Edit3, 
   Save, 
   Plus, 
@@ -13,21 +11,17 @@ import {
   Globe, 
   ExternalLink, 
   FolderPlus,
-  ShieldCheck,
-  Star,
-  Cpu,
-  Layers,
-  Sparkles
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
 
-export default function ProfilePage({ onOpenCreateProject }) {
-  const { currentUser, updateProfile, isSupabaseConfigured } = useAuth();
+export default function ProfilePage() {
+  const { currentUser, updateProfile } = useAuth();
   const { projects, showToast } = useProjects();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -53,16 +47,16 @@ export default function ProfilePage({ onOpenCreateProject }) {
           <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
             <User className="w-6 h-6 text-gradient" />
           </div>
-          <CardTitle className="text-2xl font-bold font-heading mb-2">Student Profile</CardTitle>
+          <CardTitle className="text-2xl font-bold font-heading mb-2">Your profile</CardTitle>
           <CardDescription className="mb-6">
-            Please sign in or create an account to view and customize your capstone profile.
+            Sign in to view your profile.
           </CardDescription>
           <div className="flex gap-3 justify-center">
             <Button asChild variant="gradient">
               <Link to="/login">Sign In</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/signup">Create Profile</Link>
+              <Link to="/signup">Create account</Link>
             </Button>
           </div>
         </Card>
@@ -141,15 +135,10 @@ export default function ProfilePage({ onOpenCreateProject }) {
                   {currentUser.name}
                 </h1>
                 <Badge variant={currentUser.verified ? 'success' : 'outline'} className="gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> {currentUser.verified ? 'Verified Student' : 'Student Profile'}
+                  <ShieldCheck className="w-3.5 h-3.5" /> {currentUser.verified ? 'Verified' : 'Profile'}
                 </Badge>
-                {isSupabaseConfigured && (
-                  <Badge variant="outline" className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                    ⚡ Supabase Synced
-                  </Badge>
-                )}
               </div>
-              <div className="text-base font-semibold text-indigo-600 dark:text-indigo-400 mt-1">
+              <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mt-1">
                 {currentUser.niche}
               </div>
               <div className="flex flex-wrap gap-4 text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-2">
@@ -158,9 +147,6 @@ export default function ProfilePage({ onOpenCreateProject }) {
                 </span>
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" /> {currentUser.availability}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" /> {currentUser.rating} ({currentUser.completedProjects} Capstones Completed)
                 </span>
               </div>
             </div>
@@ -180,7 +166,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
         {!isEditing && (
           <div className="mt-6 pt-6 border-t border-zinc-200/60 dark:border-zinc-800/60">
             <h3 className="text-xs uppercase tracking-wider font-bold text-zinc-500 mb-2">
-              Bio & Research Focus
+              About
             </h3>
             <p className="text-sm sm:text-base text-zinc-700 dark:text-zinc-300 leading-relaxed max-w-3xl">
               {currentUser.bio}
@@ -193,7 +179,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
                   href={currentUser.github} 
                   target="_blank" 
                   rel="noreferrer" 
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/60 hover:border-indigo-500 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 hover:border-zinc-500 transition-colors"
                 >
                   <Globe className="w-3.5 h-3.5" /> GitHub Profile
                 </a>
@@ -203,7 +189,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
                   href={currentUser.linkedin} 
                   target="_blank" 
                   rel="noreferrer" 
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-800/60 hover:border-indigo-500 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800 hover:border-zinc-500 transition-colors"
                 >
                   <ExternalLink className="w-3.5 h-3.5" /> LinkedIn Profile
                 </a>
@@ -217,8 +203,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
       {isEditing && (
         <Card className="p-6 sm:p-8 mb-8 border-indigo-500/30 shadow-xl">
           <CardHeader className="p-0 pb-6">
-            <CardTitle className="text-xl">Update Student Details</CardTitle>
-            <CardDescription>Changes will update your algorithmic match vectors immediately.</CardDescription>
+            <CardTitle className="text-xl">Edit profile</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {profileError && (
@@ -245,7 +230,13 @@ export default function ProfilePage({ onOpenCreateProject }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                    Technical Niche
+                    Cohort
+                  </label>
+                  <Input value={cohort} onChange={(e) => setCohort(e.target.value)} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
+                    Area of focus
                   </label>
                   <select 
                     value={niche} 
@@ -280,7 +271,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
 
               <div>
                 <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-1.5">
-                  Bio & Capstone Goals
+                  About
                 </label>
                 <textarea 
                   rows={3} 
@@ -313,17 +304,11 @@ export default function ProfilePage({ onOpenCreateProject }) {
         </Card>
       )}
 
-      {/* Technical Skill Vector Manager Card */}
+      {/* Skills */}
       <Card className="p-6 sm:p-8 mb-8 border-zinc-200/80 dark:border-zinc-800/80">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">
-              <Cpu className="w-4 h-4" /> Algorithmic Matching Vector
-            </div>
-            <CardTitle className="text-xl mt-1">Verified Technical Skills</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              These skill tokens represent your node in the campus collaboration graph.
-            </CardDescription>
+            <CardTitle className="text-xl">Skills</CardTitle>
           </div>
         </div>
 
@@ -332,7 +317,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
           {skills.map(s => (
             <span
               key={s}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 shadow-sm"
+              className="project-skill inline-flex items-center gap-1.5"
             >
               <span>{s}</span>
               <button
@@ -350,29 +335,26 @@ export default function ProfilePage({ onOpenCreateProject }) {
         {/* Add Skill Input Form */}
         <form onSubmit={handleAddSkill} className="flex gap-3 max-w-md">
           <Input 
-            placeholder="Add skill (e.g. Next.js, Rust, Neo4j, PyTorch)..."
+            placeholder="Add a skill"
             value={newSkill}
             onChange={(e) => setNewSkill(e.target.value)}
             className="flex-1"
           />
           <Button type="submit" variant="secondary" size="sm">
-            <Plus className="w-4 h-4 mr-1" /> Add Skill
+            <Plus className="w-4 h-4 mr-1" /> Add skill
           </Button>
         </form>
       </Card>
 
-      {/* My Posted Capstone Projects */}
+      {/* Projects */}
       <Card className="p-6 sm:p-8 border-zinc-200/80 dark:border-zinc-800/80">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <CardTitle className="text-xl">My Capstone Projects ({userProjects.length})</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              Initiatives you are currently leading on CollabForge.
-            </CardDescription>
+            <CardTitle className="text-xl">Your projects ({userProjects.length})</CardTitle>
           </div>
           <Button asChild variant="gradient" size="sm">
             <Link to="/create-project">
-              <FolderPlus className="w-4 h-4 mr-2" /> Post New Project
+              <FolderPlus className="w-4 h-4 mr-2" /> New project
             </Link>
           </Button>
         </div>
@@ -381,7 +363,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {userProjects.map(p => (
               <Card key={p.id} className="p-5 border-zinc-200/60 dark:border-zinc-800/60">
-                <Badge variant="gradient" className="mb-2">
+                <Badge variant="outline" className="mb-2">
                   {p.category}
                 </Badge>
                 <h4 className="font-bold text-base mb-1">{p.title}</h4>
@@ -389,7 +371,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
                   {p.description}
                 </p>
                 <div className="flex justify-between items-center text-xs text-zinc-500 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                  <span>{p.openSpots} spots remaining</span>
+                  <span>{p.openSpots} spots open</span>
                   <Badge variant="outline">{p.status}</Badge>
                 </div>
               </Card>
@@ -397,7 +379,7 @@ export default function ProfilePage({ onOpenCreateProject }) {
           </div>
         ) : (
           <div className="py-8 text-center text-zinc-500 text-sm">
-            You haven't posted any capstone initiatives yet. Click "Post New Project" to get started!
+            You haven't posted a project yet.
           </div>
         )}
       </Card>

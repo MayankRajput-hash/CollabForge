@@ -1,5 +1,5 @@
 import React from 'react';
-import { Send, Inbox, Check, X, Clock, User, ArrowRight, Shield } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useProjects } from '../context/ProjectContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,25 +12,21 @@ export default function RequestsPage() {
   const outgoingRequests = requests.filter(r => r.fromUserId === currentUser?.id);
 
   return (
-    <div className="container" style={{ padding: '7rem 2rem 5rem' }}>
-      <div style={{ marginBottom: '2.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-1)', fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-          <Send size={18} /> REAL-TIME COLLABORATION
-        </div>
-        <h1 style={{ fontSize: '2.8rem', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '0.5rem' }}>
-          Collaboration Requests
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+      <div className="mb-8">
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-2">
+          Requests
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', maxWidth: '650px' }}>
-          Manage incoming requests from prospective teammates and track the status of your applications.
+        <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 max-w-2xl">
+          See invitations and applications you've sent.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         {/* Incoming Requests Column */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
-            <Inbox size={20} className="text-gradient" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Incoming Requests ({incomingRequests.length})</h2>
+            <h2 className="text-lg sm:text-xl font-bold">Incoming Requests ({incomingRequests.length})</h2>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -39,8 +35,7 @@ export default function RequestsPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.8rem' }}>
                   <div>
                     <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>{req.fromUserName}</h3>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--accent-1)', fontWeight: 600 }}>{req.fromUserNiche}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Project: <strong>{req.projectTitle}</strong></div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{req.projectTitle}</div>
                   </div>
                   <span className="badge" style={{ textTransform: 'capitalize' }}>{req.status}</span>
                 </div>
@@ -50,7 +45,7 @@ export default function RequestsPage() {
                 </p>
 
                 {req.status === 'pending' ? (
-                  <div style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end' }}>
+                  <div className="request-actions" style={{ display: 'flex', gap: '0.8rem', justifyContent: 'flex-end' }}>
                     <button 
                       onClick={() => updateRequestStatus(req.id, 'declined')}
                       className="btn btn-secondary" 
@@ -63,12 +58,12 @@ export default function RequestsPage() {
                       className="btn btn-primary" 
                       style={{ padding: '0.4rem 1.1rem', fontSize: '0.85rem' }}
                     >
-                      <Check size={15} style={{ marginRight: '0.3rem' }} /> Accept Teammate
+                      <Check size={15} style={{ marginRight: '0.3rem' }} /> Accept
                     </button>
                   </div>
                 ) : (
-                  <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 600, color: req.status === 'accepted' ? '#34d399' : '#f87171' }}>
-                    {req.status === 'accepted' ? '✓ Accepted Teammate' : 'Declined'}
+                  <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    {req.status === 'accepted' ? 'Accepted' : 'Declined'}
                   </div>
                 )}
               </div>
@@ -76,7 +71,7 @@ export default function RequestsPage() {
 
             {incomingRequests.length === 0 && (
               <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <p>No incoming collaboration requests right now.</p>
+                <p>No incoming requests.</p>
               </div>
             )}
           </div>
@@ -85,8 +80,7 @@ export default function RequestsPage() {
         {/* Outgoing Requests Column */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.2rem' }}>
-            <Send size={20} className="text-gradient" />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 700 }}>Sent Applications ({outgoingRequests.length})</h2>
+            <h2 className="text-lg sm:text-xl font-bold">Sent ({outgoingRequests.length})</h2>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -117,7 +111,7 @@ export default function RequestsPage() {
 
             {outgoingRequests.length === 0 && (
               <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                <p>You haven't sent any collaboration requests yet. Explore projects or search teammates to get started!</p>
+                <p>No messages sent yet.</p>
               </div>
             )}
           </div>

@@ -2,88 +2,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-const INITIAL_PROJECTS = [
-  {
-    id: 'proj-101',
-    title: 'EcoTrack IoT & Carbon Footprint Engine',
-    category: 'IoT & CleanTech',
-    ownerId: 'user-1',
-    ownerName: 'Jane Doe',
-    ownerUniversity: 'Stanford University',
-    description: 'A distributed IoT dashboard collecting sensor telemetry across university labs to quantify, verify, and reduce academic carbon emissions via automated audits.',
-    requiredSkills: ['Node.js', 'React', 'MongoDB', 'Docker', 'MQTT', 'Express'],
-    openSpots: 2,
-    totalSpots: 4,
-    members: ['user-1'],
-    deadline: 'Spring 2026',
-    status: 'Recruiting Collaborators',
-    architecture: 'Microservices with Node.js & Docker'
-  },
-  {
-    id: 'proj-102',
-    title: 'MedGraph: Clinical Trial Algorithmic Matcher',
-    category: 'AI & HealthTech',
-    ownerId: 'user-2',
-    ownerName: 'Alex Smith',
-    ownerUniversity: 'MIT',
-    description: 'Graph-based deep learning system modeling relationships between genomic markers, clinical trial requirements, and patient records using Neo4j and Cosine Similarity.',
-    requiredSkills: ['Python', 'Neo4j', 'FastAPI', 'PyTorch', 'Vector DB', 'React'],
-    openSpots: 1,
-    totalSpots: 3,
-    members: ['user-2'],
-    deadline: 'Fall 2026',
-    status: 'In Prototyping',
-    architecture: 'Graph Database & Deep Neural Network'
-  },
-  {
-    id: 'proj-103',
-    title: 'UniCred: Cryptographic Credential Protocol',
-    category: 'Cybersecurity & Web3',
-    ownerId: 'user-5',
-    ownerName: 'Sara Lindqvist',
-    ownerUniversity: 'KTH Royal Institute',
-    description: 'Decentralized identity protocol allowing university graduates to cryptographically prove degrees and capstone credentials using JWTs and Zero-Knowledge proofs.',
-    requiredSkills: ['Solidity', 'Rust', 'OAuth 2.0', 'JWT', 'React', 'Node.js'],
-    openSpots: 2,
-    totalSpots: 4,
-    members: ['user-5'],
-    deadline: 'Spring 2026',
-    status: 'Recruiting Collaborators',
-    architecture: 'Hybrid Cloud Microservices + Smart Contracts'
-  },
-  {
-    id: 'proj-104',
-    title: 'CampusMesh: High-Throughput Resource Scheduler',
-    category: 'Cloud Infrastructure',
-    ownerId: 'user-3',
-    ownerName: 'Priya Sharma',
-    ownerUniversity: 'Carnegie Mellon University',
-    description: 'Scalable cloud infrastructure managing containerized high-performance computing tasks across academic computer labs with auto-scaling Kubernetes controllers.',
-    requiredSkills: ['Docker', 'Kubernetes', 'Go', 'AWS', 'PostgreSQL', 'Terraform'],
-    openSpots: 3,
-    totalSpots: 5,
-    members: ['user-3'],
-    deadline: 'Fall 2026',
-    status: 'Recruiting Collaborators',
-    architecture: 'Containerized Kubernetes Mesh'
-  }
-];
-
-const INITIAL_REQUESTS = [
-  {
-    id: 'req-1',
-    projectId: 'proj-101',
-    projectTitle: 'EcoTrack IoT & Carbon Footprint Engine',
-    fromUserId: 'user-4',
-    fromUserName: 'Liam Chen',
-    fromUserNiche: 'UI/UX & Frontend Architecture',
-    toUserId: 'user-1',
-    message: 'Hey Jane! I love the IoT dashboard concept. I can design the full Figma system and build the responsive React data visualization components.',
-    status: 'pending',
-    timestamp: '2 hours ago'
-  }
-];
-
 const ProjectContext = createContext();
 
 export function ProjectProvider({ children }) {
@@ -91,12 +9,12 @@ export function ProjectProvider({ children }) {
 
   const [projects, setProjects] = useState(() => {
     const saved = localStorage.getItem('collabforge_projects');
-    return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [requests, setRequests] = useState(() => {
     const saved = localStorage.getItem('collabforge_requests');
-    return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
+    return saved ? JSON.parse(saved) : [];
   });
 
   const [toastMessage, setToastMessage] = useState(null);

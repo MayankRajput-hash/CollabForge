@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
+import {
   Search, 
-  Users, 
-  GraduationCap, 
   Clock, 
   CheckCircle, 
   Send, 
   Sparkles, 
   Globe, 
   ExternalLink, 
-  X,
-  Star,
-  Cpu
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
@@ -21,7 +17,7 @@ import { computeCompatibilityScore } from '../utils/matchingAlgorithm';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import { Card, CardTitle, CardDescription } from '../components/ui/card';
 
 export default function TeammatesPage() {
   const { users, currentUser } = useAuth();
@@ -53,10 +49,7 @@ export default function TeammatesPage() {
     const comp = currentUser 
       ? computeCompatibilityScore(currentUser, student) 
       : { score: 75, jaccardScore: 60, cosineScore: 80, sharedSkills: [], missingSkills: [] };
-    return {
-      ...student,
-      compatibility: comp
-    };
+    return { ...student, compatibility: comp };
   }).sort((a, b) => b.compatibility.score - a.compatibility.score);
 
   // Filter students
@@ -79,7 +72,7 @@ export default function TeammatesPage() {
     const userProjects = projects.filter(p => p.ownerId === currentUser.id);
     const defaultProjId = userProjects[0]?.id || projects[0]?.id || '';
     setConnectProjectId(defaultProjId);
-    setConnectMessage(`Hi ${student.name}, I found your profile on CollabForge! I'm putting together a capstone initiative and would love to collaborate based on your expertise in ${student.skills.slice(0, 2).join(' & ')}.`);
+    setConnectMessage(`Hi ${student.name}, I'd like to connect about working together.`);
   };
 
   const handleSendConnect = (e) => {
@@ -100,23 +93,23 @@ export default function TeammatesPage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
-          <Sparkles className="w-4 h-4" /> Algorithmic Peer Matchmaker
+          <Sparkles className="w-4 h-4" /> People to work with
         </div>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50 font-heading">
-          Find Capstone Teammates
+          Find collaborators
         </h1>
         <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1 max-w-xl">
-          Peers dynamically ranked by <strong>Cosine Similarity</strong> and <strong>Jaccard Index</strong> based on your verified skill vector and availability.
+          Browse profiles by skills and availability.
         </p>
       </div>
 
       {/* Filter and Search Bar */}
-      <Card className="p-4 sm:p-5 mb-8 border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="project-filters mb-8">
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <div className="relative w-full md:flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
             <Input
-              placeholder="Search by student name, university, or skill (e.g. Node.js, PyTorch)..."
+              placeholder="Search people or skills"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -143,16 +136,16 @@ export default function TeammatesPage() {
               <option value="10-15 hrs/week">10-15 hrs/week</option>
               <option value="15-20 hrs/week">15-20 hrs/week</option>
               <option value="20+ hrs/week">20+ hrs/week</option>
-              <option value="Full-time Capstone">Full-time Capstone</option>
+              <option value="Full-time Capstone">Full-time</option>
             </select>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Candidate Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* People */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredStudents.map(student => (
-          <Card key={student.id} className="p-6 flex flex-col justify-between hover:border-indigo-500/40 transition-all">
+          <Card key={student.id} className="people-listing flex flex-col justify-between">
             <div>
               {/* Top Profile Bar */}
               <div className="flex justify-between items-start gap-4 mb-4">
@@ -160,13 +153,13 @@ export default function TeammatesPage() {
                   <img
                     src={student.avatar}
                     alt={student.name}
-                    className="w-14 h-14 rounded-2xl object-cover border-2 border-indigo-500/40 shadow-sm"
+                    className="w-14 h-14 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
                   />
                   <div>
                     <div className="flex items-center gap-1.5">
                       <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">{student.name}</h3>
                       {student.verified && (
-                        <CheckCircle className="w-4 h-4 text-emerald-500" title="Verified Capstone Student" />
+                        <CheckCircle className="w-4 h-4 text-zinc-500" title="Verified account" />
                       )}
                     </div>
                     <div className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
@@ -178,16 +171,6 @@ export default function TeammatesPage() {
                   </div>
                 </div>
 
-                {currentUser && (
-                  <div className="text-right shrink-0">
-                    <div className="text-2xl font-extrabold text-gradient font-heading">
-                      {student.compatibility.score}%
-                    </div>
-                    <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-                      Match
-                    </div>
-                  </div>
-                )}
               </div>
 
               {/* Bio */}
@@ -200,15 +183,12 @@ export default function TeammatesPage() {
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" /> {student.availability}
                 </span>
-                <span className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> {student.rating} ({student.completedProjects} Capstones)
-                </span>
               </div>
 
               {/* Technical Skills */}
               <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800">
                 <div className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                  Technical Skill Vector:
+                  Skills
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {student.skills.map(s => {
@@ -216,13 +196,9 @@ export default function TeammatesPage() {
                     return (
                       <span
                         key={s}
-                        className={`text-xs px-2 py-0.5 rounded-md font-medium ${
-                          isShared
-                            ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-                            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
-                        }`}
+                        className={`project-skill ${isShared ? 'project-skill-shared' : ''}`}
                       >
-                        {s} {isShared && '✓'}
+                        {s}
                       </span>
                     );
                   })}
@@ -233,21 +209,27 @@ export default function TeammatesPage() {
             {/* Actions */}
             <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
               <Button variant="outline" size="sm" onClick={() => setActiveProfileModal(student)}>
-                View Portfolio
+                View profile
               </Button>
               {currentUser ? (
                 <Button variant="gradient" size="sm" onClick={() => handleOpenConnect(student)}>
-                  <Send className="w-3.5 h-3.5 mr-1.5" /> Invite Teammate
+                <Send className="w-3.5 h-3.5 mr-1.5" /> Send a message
                 </Button>
               ) : (
                 <Button asChild variant="gradient" size="sm">
-                  <Link to="/signup">Connect</Link>
+                    <Link to="/signup">Sign in to connect</Link>
                 </Button>
               )}
             </div>
           </Card>
         ))}
       </div>
+      {filteredStudents.length === 0 && (
+        <div className="project-empty-state">
+          <p className="text-base font-semibold mb-1">No profiles found</p>
+          <p className="text-sm">Try another search or filter.</p>
+        </div>
+      )}
 
       {/* Full Student Profile Modal */}
       {activeProfileModal && (
@@ -264,7 +246,7 @@ export default function TeammatesPage() {
               <img
                 src={activeProfileModal.avatar}
                 alt={activeProfileModal.name}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-indigo-500 shadow-sm"
+                className="w-16 h-16 rounded-full object-cover border border-zinc-200 dark:border-zinc-700"
               />
               <div>
                 <h2 className="text-xl font-bold">{activeProfileModal.name}</h2>
@@ -278,17 +260,17 @@ export default function TeammatesPage() {
             </div>
 
             <div className="mb-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">About Student</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-1">About</h4>
               <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
                 {activeProfileModal.bio}
               </p>
             </div>
 
             <div className="mb-4">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Verified Skill Vector</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Skills</h4>
               <div className="flex flex-wrap gap-1.5">
                 {activeProfileModal.skills.map(s => (
-                  <Badge key={s} variant="gradient">
+                  <Badge key={s} variant="outline">
                     {s}
                   </Badge>
                 ))}
@@ -317,7 +299,7 @@ export default function TeammatesPage() {
                   handleOpenConnect(activeProfileModal);
                 }}
               >
-                <Send className="w-3.5 h-3.5 mr-1.5" /> Invite Teammate
+                <Send className="w-3.5 h-3.5 mr-1.5" /> Send a message
               </Button>
             </div>
           </Card>
@@ -335,15 +317,15 @@ export default function TeammatesPage() {
               <X className="w-5 h-5" />
             </button>
 
-            <CardTitle className="text-xl mb-1">Collaborate with {connectStudent.name}</CardTitle>
+            <CardTitle className="text-xl mb-1">Message {connectStudent.name}</CardTitle>
             <CardDescription className="mb-4">
-              Invite {connectStudent.name} to join your project or propose a research initiative.
+              Choose a project and say hello.
             </CardDescription>
 
             <form onSubmit={handleSendConnect} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
-                  Select Your Capstone Project
+                  Project
                 </label>
                 <select
                   value={connectProjectId}
@@ -358,7 +340,7 @@ export default function TeammatesPage() {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-2">
-                  Personal Invitation Message
+                  Message
                 </label>
                 <textarea
                   rows={4}
@@ -374,7 +356,7 @@ export default function TeammatesPage() {
                   Cancel
                 </Button>
                 <Button type="submit" variant="gradient">
-                  <Send className="w-4 h-4 mr-2" /> Send Invitation
+                  <Send className="w-4 h-4 mr-2" /> Send message
                 </Button>
               </div>
             </form>

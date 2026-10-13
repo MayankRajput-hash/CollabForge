@@ -2,21 +2,17 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { 
   FolderPlus, 
-  Layers, 
   Calendar, 
   Users, 
   Code2, 
-  FileText, 
-  Sparkles, 
   ArrowLeft, 
-  CheckCircle2, 
   AlertCircle 
 } from 'lucide-react';
 import { useProjects } from '../context/ProjectContext';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../components/ui/card';
+import { Card, CardTitle, CardDescription } from '../components/ui/card';
 
 export default function CreateProjectPage() {
   const { addProject } = useProjects();
@@ -28,8 +24,7 @@ export default function CreateProjectPage() {
   const [description, setDescription] = useState('');
   const [requiredSkills, setRequiredSkills] = useState('');
   const [openSpots, setOpenSpots] = useState(2);
-  const [deadline, setDeadline] = useState('Spring 2026');
-  const [architecture, setArchitecture] = useState('Microservices with Node.js & Docker');
+  const [deadline, setDeadline] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,7 +37,7 @@ export default function CreateProjectPage() {
           </div>
           <CardTitle className="text-2xl font-bold font-heading mb-2">Post a Project</CardTitle>
           <CardDescription className="mb-6">
-            You must have a verified student profile before posting capstone initiatives.
+            Sign in to share a project and find collaborators.
           </CardDescription>
           <div className="flex gap-3 justify-center">
             <Button asChild variant="gradient">
@@ -61,8 +56,8 @@ export default function CreateProjectPage() {
     e.preventDefault();
     setError('');
 
-    if (!title || !description || !requiredSkills) {
-      setError('Please provide a title, description, and required skill set.');
+    if (!title || !description) {
+      setError('Add a project name and a short description.');
       return;
     }
 
@@ -75,7 +70,6 @@ export default function CreateProjectPage() {
       openSpots: Number(openSpots),
       totalSpots: Number(openSpots) + 1,
       deadline,
-      architecture
     });
     setLoading(false);
 
@@ -87,14 +81,14 @@ export default function CreateProjectPage() {
       <div className="mb-6">
         <Button asChild variant="ghost" size="sm" className="mb-3">
           <Link to="/projects">
-            <ArrowLeft className="w-4 h-4 mr-1.5" /> Back to Project Directory
+          <ArrowLeft className="w-4 h-4 mr-1.5" /> Projects
           </Link>
         </Button>
         <h1 className="text-3xl sm:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50 font-heading">
-          Post Capstone Project
+          Post a project
         </h1>
         <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1">
-          Publish your research challenge to match algorithmically with complementary student collaborators.
+          Tell people what you're working on and who you'd like to work with.
         </p>
       </div>
 
@@ -112,7 +106,7 @@ export default function CreateProjectPage() {
               Project Title *
             </label>
             <Input
-              placeholder="e.g. Autonomous Fleet Scheduling & Microservices Telemetry"
+              placeholder="e.g. A better way to share rides to campus"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -140,12 +134,12 @@ export default function CreateProjectPage() {
 
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                Target Cohort / Deadline
+                Deadline (optional)
               </label>
               <div className="relative">
                 <Calendar className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                 <Input
-                  placeholder="e.g. Spring 2026"
+                  placeholder="e.g. Spring 2027"
                   value={deadline}
                   onChange={(e) => setDeadline(e.target.value)}
                   className="pl-10"
@@ -156,11 +150,11 @@ export default function CreateProjectPage() {
 
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-              Problem Context & Description *
+              About the project *
             </label>
             <textarea
               rows={4}
-              placeholder="Detail the academic problem statement, research methodology, and what complementary skill niches you are recruiting..."
+              placeholder="What are you working on? What would you like help with?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="flex w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 p-3 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500 resize-y"
@@ -170,27 +164,23 @@ export default function CreateProjectPage() {
 
           <div>
             <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-              Required Tech Stack & Skills (comma separated) *
+              Skills (optional)
             </label>
             <div className="relative">
               <Code2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
               <Input
-                placeholder="e.g. React, Node.js, MongoDB, Docker, Python, PyTorch"
+                placeholder="e.g. React, writing, research"
                 value={requiredSkills}
                 onChange={(e) => setRequiredSkills(e.target.value)}
                 className="pl-10"
-                required
               />
             </div>
-            <span className="text-[11px] text-zinc-500 mt-1 block">
-              These skill tokens determine compatibility matching scores for prospective teammates.
-            </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                Open Teammate Spots
+                People needed
               </label>
               <div className="relative">
                 <Users className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -205,20 +195,6 @@ export default function CreateProjectPage() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider mb-2">
-                Proposed System Architecture
-              </label>
-              <div className="relative">
-                <Layers className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                <Input
-                  placeholder="e.g. Microservices with Node.js & Docker"
-                  value={architecture}
-                  onChange={(e) => setArchitecture(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
           </div>
 
           <div className="pt-4 border-t border-zinc-200/60 dark:border-zinc-800/60 flex justify-end gap-3">
@@ -226,7 +202,7 @@ export default function CreateProjectPage() {
               <Link to="/projects">Cancel</Link>
             </Button>
             <Button type="submit" variant="gradient" disabled={loading}>
-              {loading ? 'Publishing...' : 'Publish Capstone Project'}
+              {loading ? 'Publishing...' : 'Publish project'}
             </Button>
           </div>
         </form>

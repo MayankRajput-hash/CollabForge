@@ -1,26 +1,21 @@
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
-  Network, 
   Moon, 
   Sun, 
   User, 
   LogOut, 
-  Send, 
   PlusCircle, 
   Menu, 
-  X,
-  Compass,
-  Users
+  X
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
 
-export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCreateProject }) {
-  const { currentUser, logout, users, switchUser } = useAuth();
+export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject }) {
+  const { currentUser, logout } = useAuth();
   const { requests } = useProjects();
   const location = useLocation();
-  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
@@ -36,12 +31,12 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
       <div className="container nav-container">
         {/* Brand Logo */}
         <Link to="/" className="logo" style={{ textDecoration: 'none' }}>
-          <Network className="text-gradient" size={28} />
+          <span className="brand-mark" aria-hidden="true">c</span>
           <span>CollabForge</span>
         </Link>
 
         {/* Desktop Links */}
-        <div className="nav-links desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+        <div className="nav-links desktop-only">
           <Link 
             to="/projects" 
             style={{ 
@@ -49,9 +44,10 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
               fontWeight: isActive('/projects') ? 600 : 500,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem'
+              gap: '0.4rem',
+              textDecoration: 'none'
             }}>
-            <Compass size={17} /> Explore Projects
+            Projects
           </Link>
 
           <Link 
@@ -61,9 +57,10 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
               fontWeight: isActive('/teammates') ? 600 : 500,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem'
+              gap: '0.4rem',
+              textDecoration: 'none'
             }}>
-            <Users size={17} /> Find Teammates
+            People
           </Link>
 
           {currentUser && (
@@ -75,21 +72,12 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                textDecoration: 'none'
               }}>
-              <Send size={16} /> Requests
+              Inbox
               {pendingRequestsCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '-8px',
-                  right: '-14px',
-                  background: 'var(--accent-2)',
-                  color: 'white',
-                  fontSize: '0.7rem',
-                  padding: '1px 6px',
-                  borderRadius: '999px',
-                  fontWeight: 700
-                }}>
+                <span className="nav-request-count">
                   {pendingRequestsCount}
                 </span>
               )}
@@ -98,7 +86,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
         </div>
 
         {/* Right Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center' }}>
           {/* Post Project Shortcut Button */}
           {currentUser && (
             <Link 
@@ -106,7 +94,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
               className="btn btn-secondary desktop-only"
               style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
             >
-              <PlusCircle size={16} /> Post Project
+              <PlusCircle size={16} /> New project
             </Link>
           )}
 
@@ -142,7 +130,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
                   alt={currentUser.name} 
                   style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover' }}
                 />
-                <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>{currentUser.name.split(' ')[0]}</span>
+                <span className="nav-user-name" style={{ fontSize: '0.88rem', fontWeight: 600 }}>{currentUser.name.split(' ')[0]}</span>
               </button>
 
               {userDropdownOpen && (
@@ -163,8 +151,6 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
                 >
                   <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--glass-border)' }}>
                     <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{currentUser.name}</div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{currentUser.university}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--accent-1)', marginTop: '2px' }}>{currentUser.niche}</div>
                   </div>
 
                   <Link 
@@ -182,34 +168,8 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
                     }}
                     className="dropdown-item"
                   >
-                    <User size={16} /> My Student Profile
+                    <User size={16} /> Profile
                   </Link>
-
-                  <div style={{ padding: '0.5rem 0.2rem 0.2rem', fontSize: '0.72rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    Switch Persona:
-                  </div>
-                  {users.slice(0, 3).map(u => (
-                    <button
-                      key={u.id}
-                      onClick={() => { switchUser(u.id); setUserDropdownOpen(false); }}
-                      style={{
-                        background: u.id === currentUser.id ? 'var(--card-bg)' : 'none',
-                        border: 'none',
-                        color: 'var(--text-primary)',
-                        textAlign: 'left',
-                        padding: '0.4rem 0.6rem',
-                        borderRadius: '6px',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between'
-                      }}
-                    >
-                      <span>{u.name}</span>
-                      {u.id === currentUser.id && <span style={{ fontSize: '0.7rem', color: 'var(--accent-1)' }}>Active</span>}
-                    </button>
-                  ))}
 
                   <div style={{ borderTop: '1px solid var(--glass-border)', marginTop: '0.4rem', paddingTop: '0.4rem' }}>
                     <button 
@@ -235,20 +195,20 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
               )}
             </div>
           ) : (
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <div className="auth-actions desktop-only" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <Link 
                 to="/login"
                 className="btn btn-secondary" 
                 style={{ padding: '0.45rem 1rem', fontSize: '0.88rem', textDecoration: 'none' }}
               >
-                Sign In
+                Sign in
               </Link>
               <Link 
                 to="/signup"
                 className="btn btn-primary" 
                 style={{ padding: '0.45rem 1.1rem', fontSize: '0.88rem', textDecoration: 'none' }}
               >
-                Sign Up
+                Sign up
               </Link>
             </div>
           )}
@@ -266,7 +226,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="glass-panel mobile-only" style={{ padding: '1.5rem', margin: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div className="glass-panel mobile-only mobile-drawer" style={{ padding: '1.5rem', margin: '0.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <Link to="/projects" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
             Explore Projects
           </Link>
@@ -276,15 +236,25 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenAuth, onOpenCr
           {currentUser && (
             <>
               <Link to="/profile" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
-                My Student Profile
+                Profile
               </Link>
               <Link to="/requests" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
-                Collaboration Requests ({pendingRequestsCount})
+                Inbox ({pendingRequestsCount})
               </Link>
               <button onClick={() => { onOpenCreateProject(); setMobileMenuOpen(false); }} className="btn btn-primary" style={{ marginTop: '0.5rem' }}>
                 Post Capstone Project
               </button>
             </>
+          )}
+          {!currentUser && (
+            <div className="mobile-auth-actions">
+              <Link to="/login" onClick={() => setMobileMenuOpen(false)} className="btn btn-secondary">
+                Sign In
+              </Link>
+              <Link to="/signup" onClick={() => setMobileMenuOpen(false)} className="btn btn-primary">
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
       )}

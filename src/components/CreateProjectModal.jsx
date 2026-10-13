@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
-import { X, FolderPlus, Layers, Users, Tag, Calendar, FileText } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useProjects } from '../context/ProjectContext';
-import { useAuth } from '../context/AuthContext';
 
 export default function CreateProjectModal({ isOpen, onClose }) {
   const { addProject } = useProjects();
-  const { currentUser } = useAuth();
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('AI & HealthTech');
   const [description, setDescription] = useState('');
   const [requiredSkills, setRequiredSkills] = useState('');
   const [openSpots, setOpenSpots] = useState(2);
-  const [deadline, setDeadline] = useState('Fall 2026');
-  const [architecture, setArchitecture] = useState('Microservices with Node.js & Docker');
+  const [deadline, setDeadline] = useState('');
 
   if (!isOpen) return null;
 
@@ -28,8 +25,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       requiredSkills,
       openSpots: Number(openSpots),
       totalSpots: Number(openSpots) + 1,
-      deadline,
-      architecture
+      deadline
     });
 
     onClose();
@@ -42,22 +38,19 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.75)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       zIndex: 1000,
       padding: '1.5rem'
     }}>
-      <div className="glass-panel" style={{
+      <div className="glass-panel responsive-modal-content" style={{
         width: '100%',
         maxWidth: '620px',
         maxHeight: '90vh',
         overflowY: 'auto',
-        padding: '2.5rem',
         position: 'relative',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
         border: '1px solid var(--glass-border)'
       }}>
         {/* Close Button */}
@@ -75,26 +68,23 @@ export default function CreateProjectModal({ isOpen, onClose }) {
           <X size={22} />
         </button>
 
-        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <div style={{ display: 'inline-flex', padding: '0.6rem', borderRadius: '12px', background: 'var(--card-bg)', marginBottom: '0.8rem' }}>
-            <FolderPlus className="text-gradient" size={28} />
-          </div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-            Post Capstone Project
+        <div style={{ marginBottom: '1.5rem', paddingRight: '2rem' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.4rem' }}>
+            New project
           </h2>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-            Publish your project problem statement to algorithmically match with prospective student teammates.
+            Share what you're working on and who you'd like to work with.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-              Project Title *
+              Project name *
             </label>
             <input 
               type="text" 
-              placeholder="e.g. Autonomous Campus Delivery & Fleet Routing"
+              placeholder="e.g. A better way to share rides to campus"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="input-field"
@@ -102,10 +92,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="modal-form-grid" style={{ gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                Domain Category
+                Category
               </label>
               <select 
                 value={category} 
@@ -124,11 +114,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                Target Cohort / Deadline
+                Deadline (optional)
               </label>
               <input 
                 type="text" 
-                placeholder="e.g. Spring 2026"
+                placeholder="e.g. Spring 2027"
                 value={deadline}
                 onChange={(e) => setDeadline(e.target.value)}
                 className="input-field"
@@ -138,11 +128,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-              Problem Context & Description *
+              About the project *
             </label>
             <textarea 
               rows={4}
-              placeholder="Describe the research problem, methodology, and what complementary skills you are looking for..."
+              placeholder="What are you working on? What would you like help with?"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               className="input-field"
@@ -153,22 +143,21 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
           <div>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-              Required Tech Stack & Skills (comma separated) *
+              Skills (optional)
             </label>
             <input 
               type="text" 
-              placeholder="e.g. React, Python, Neo4j, Docker, PyTorch"
+              placeholder="e.g. React, writing, research"
               value={requiredSkills}
               onChange={(e) => setRequiredSkills(e.target.value)}
               className="input-field"
-              required
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="modal-form-grid" style={{ gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                Open Teammate Spots
+                People needed
               </label>
               <input 
                 type="number" 
@@ -180,22 +169,10 @@ export default function CreateProjectModal({ isOpen, onClose }) {
               />
             </div>
 
-            <div>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>
-                Proposed Architecture
-              </label>
-              <input 
-                type="text" 
-                placeholder="e.g. Microservices / Node.js"
-                value={architecture}
-                onChange={(e) => setArchitecture(e.target.value)}
-                className="input-field"
-              />
-            </div>
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '0.5rem', padding: '0.9rem' }}>
-            Publish Project & Start Finding Collaborators
+            Publish project
           </button>
         </form>
       </div>
