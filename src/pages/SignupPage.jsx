@@ -65,7 +65,7 @@ export default function SignupPage() {
       if (!res.success) {
         setError(res.message || 'Error creating account. Please try again.');
       } else if (res.requiresEmailConfirmation) {
-        setNotice('Account created. Check your email to confirm your address before signing in.');
+        setNotice("We've sent a confirmation code to your email. ");
       } else {
         showToast(`Welcome to CollabForge, ${name}! Your profile is ready.`);
         navigate('/profile');

@@ -3,11 +3,16 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
+const isPlaceholderValue = value =>
+  /^(?:\*+|your[-_ ]|placeholder|replace[-_ ]?me)|\.{3}/i.test(value.trim());
+
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
   supabaseAnonKey && 
   supabaseUrl !== 'https://your-project.supabase.co' && 
-  !supabaseUrl.includes('placeholder')
+  !supabaseUrl.toLowerCase().includes('placeholder') &&
+  !isPlaceholderValue(supabaseUrl) &&
+  !isPlaceholderValue(supabaseAnonKey)
 );
 
 export const supabase = isSupabaseConfigured
