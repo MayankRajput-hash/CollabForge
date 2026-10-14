@@ -5,6 +5,8 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 const isPlaceholderValue = value =>
   /^(?:\*+|your[-_ ]|placeholder|replace[-_ ]?me)|\.{3}/i.test(value.trim());
+console.log("SUPABASE URL =", supabaseUrl);
+console.log("SUPABASE KEY =", supabaseAnonKey?.substring(0,30));
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl && 
