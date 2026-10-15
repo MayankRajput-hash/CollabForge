@@ -96,28 +96,44 @@ export default function ProjectsPage() {
             />
           </div>
 
-          {/* Category Tabs */}
-          <div className="flex gap-1.5 flex-wrap w-full md:w-auto">
+          {/* Category Tabs with animations */}
+          <div className="flex gap-1.5 flex-wrap w-full md:w-auto items-center" role="tablist" aria-label="Project Categories">
             {categories.map(cat => (
               <button
                 key={cat}
                 type="button"
+                role="tab"
+                aria-selected={selectedCategory === cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-all cursor-pointer ${
+                className={`tab-pill text-xs px-3.5 py-2 rounded-xl font-medium transition-all duration-200 cursor-pointer ${
                   selectedCategory === cat
-                    ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
-                    : 'bg-transparent border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                    ? 'tab-pill-active bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold shadow-sm scale-102'
+                    : 'bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/60 dark:hover:bg-zinc-800'
                 }`}
               >
                 {cat}
               </button>
             ))}
+
+            {(selectedCategory !== 'All' || searchQuery) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory('All');
+                  setSearchQuery('');
+                }}
+                className="text-xs px-2.5 py-1.5 rounded-lg text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer flex items-center gap-1 font-medium ml-1"
+                title="Reset all filters"
+              >
+                <X className="w-3.5 h-3.5" /> Reset
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Project Cards Grid */}
-      <div className="project-list">
+      {/* Project Cards Grid with animated tab switch */}
+      <div key={selectedCategory} className="project-list tab-content-enter">
         {filteredProjects.map(proj => {
           const hasRequested = requests.some(r => r.projectId === proj.id && r.fromUserId === currentUser?.id);
           const isOwner = currentUser?.id === proj.ownerId;
@@ -188,9 +204,33 @@ export default function ProjectsPage() {
       </div>
 
       {filteredProjects.length === 0 && (
-        <div className="project-empty-state">
-          <p className="text-base font-semibold mb-1">No matching projects found</p>
-          <p className="text-xs">Try adjusting your search criteria or category filter.</p>
+        <div className="project-empty-state text-center py-12 px-4 glass-panel border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
+          <p className="text-base font-semibold mb-1 text-zinc-800 dark:text-zinc-200">
+            {projects.length === 0 ? 'No projects published yet' : 'No matching projects found'}
+          </p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto mb-4">
+            {projects.length === 0 
+              ? 'Be the first to create and publish a capstone or collaborative project on CollabForge!'
+              : 'Try adjusting your search criteria or category filter.'}
+          </p>
+          {projects.length === 0 ? (
+            <Button asChild variant="gradient" size="sm">
+              <Link to={currentUser ? '/create-project' : '/signup'}>
+                <PlusCircle className="w-4 h-4 mr-1.5" /> Start the first project
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedCategory('All');
+                setSearchQuery('');
+              }}
+            >
+              Reset filters
+            </Button>
+          )}
         </div>
       )}
 

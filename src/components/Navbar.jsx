@@ -35,30 +35,38 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject 
           <span>CollabForge</span>
         </Link>
 
-        {/* Desktop Links */}
+        {/* Desktop Links with interactive indicators */}
         <div className="nav-links desktop-only">
           <Link 
             to="/projects" 
+            className="tab-pill"
             style={{ 
               color: isActive('/projects') ? 'var(--accent-1)' : 'var(--text-secondary)',
               fontWeight: isActive('/projects') ? 600 : 500,
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              textDecoration: 'none'
+              textDecoration: 'none',
+              padding: '0.35rem 0.65rem',
+              borderRadius: '8px',
+              backgroundColor: isActive('/projects') ? 'var(--bg-secondary)' : 'transparent'
             }}>
             Projects
           </Link>
 
           <Link 
             to="/teammates" 
+            className="tab-pill"
             style={{ 
               color: isActive('/teammates') ? 'var(--accent-1)' : 'var(--text-secondary)',
               fontWeight: isActive('/teammates') ? 600 : 500,
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              textDecoration: 'none'
+              textDecoration: 'none',
+              padding: '0.35rem 0.65rem',
+              borderRadius: '8px',
+              backgroundColor: isActive('/teammates') ? 'var(--bg-secondary)' : 'transparent'
             }}>
             People
           </Link>
@@ -66,6 +74,7 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject 
           {currentUser && (
             <Link 
               to="/requests" 
+              className="tab-pill"
               style={{ 
                 color: isActive('/requests') ? 'var(--accent-1)' : 'var(--text-secondary)',
                 fontWeight: isActive('/requests') ? 600 : 500,
@@ -73,11 +82,14 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                textDecoration: 'none'
+                textDecoration: 'none',
+                padding: '0.35rem 0.65rem',
+                borderRadius: '8px',
+                backgroundColor: isActive('/requests') ? 'var(--bg-secondary)' : 'transparent'
               }}>
               Inbox
               {pendingRequestsCount > 0 && (
-                <span className="nav-request-count">
+                <span className="nav-request-count" style={{ backgroundColor: '#6366f1', color: '#fff', border: 'none', fontWeight: 600 }}>
                   {pendingRequestsCount}
                 </span>
               )}
@@ -86,12 +98,12 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject 
         </div>
 
         {/* Right Actions */}
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center' }}>
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           {/* Post Project Shortcut Button */}
           {currentUser && (
             <Link 
               to="/create-project"
-              className="btn btn-secondary desktop-only"
+              className="btn btn-secondary desktop-only tab-pill"
               style={{ padding: '0.45rem 1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem', textDecoration: 'none' }}
             >
               <PlusCircle size={16} /> New project

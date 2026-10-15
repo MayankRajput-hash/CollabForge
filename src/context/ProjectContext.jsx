@@ -7,14 +7,33 @@ const ProjectContext = createContext();
 export function ProjectProvider({ children }) {
   const { currentUser } = useAuth();
 
+  // Known legacy mock/demo project IDs to purge
+  const DEMO_PROJECT_IDS = new Set(['proj-101', 'proj-102', 'proj-103', 'proj-104']);
+
   const [projects, setProjects] = useState(() => {
-    const saved = localStorage.getItem('collabforge_projects');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('collabforge_projects');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      // Remove any legacy mock/demo projects
+      const cleaned = Array.isArray(parsed) ? parsed.filter(p => !DEMO_PROJECT_IDS.has(p?.id)) : [];
+      return cleaned;
+    } catch {
+      return [];
+    }
   });
 
   const [requests, setRequests] = useState(() => {
-    const saved = localStorage.getItem('collabforge_requests');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('collabforge_requests');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      // Remove any mock demo requests associated with demo projects
+      const cleaned = Array.isArray(parsed) ? parsed.filter(r => !DEMO_PROJECT_IDS.has(r?.projectId) && r?.id !== 'req-1') : [];
+      return cleaned;
+    } catch {
+      return [];
+    }
   });
 
   const [toastMessage, setToastMessage] = useState(null);
@@ -25,11 +44,10 @@ export function ProjectProvider({ children }) {
       const fetchSupabaseProjects = async () => {
         try {
           const { data, error } = await supabase.from('projects').select('*');
-          if (data && data.length > 0 && !error) {
-            setProjects(prev => {
-              const ids = new Set(data.map(d => d.id));
-              return [...data, ...prev.filter(p => !ids.has(p.id))];
-            });
+          if (data && !error) {
+            // Keep only non-demo real projects
+            const validRealProjects = data.filter(d => !DEMO_PROJECT_IDS.has(d.id));
+            setProjects(validRealProjects);
           }
         } catch (err) {
           console.warn('Supabase projects fetch warning:', err);
@@ -39,8 +57,9 @@ export function ProjectProvider({ children }) {
       const fetchSupabaseRequests = async () => {
         try {
           const { data, error } = await supabase.from('requests').select('*');
-          if (data && data.length > 0 && !error) {
-            setRequests(data);
+          if (data && !error) {
+            const validRealRequests = data.filter(r => !DEMO_PROJECT_IDS.has(r.projectId));
+            setRequests(validRealRequests);
           }
         } catch (err) {
           console.warn('Supabase requests fetch warning:', err);

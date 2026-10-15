@@ -115,22 +115,50 @@ export default function TeammatesPage() {
               className="pl-10"
             />
           </div>
+        </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-            <select
-              value={selectedNiche}
-              onChange={(e) => setSelectedNiche(e.target.value)}
-              className="h-11 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 px-3 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              {niches.map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
+        {/* Focus Area Tabs with animations */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+          <div className="flex gap-1.5 flex-wrap items-center" role="tablist" aria-label="Role Niches">
+            {niches.map(n => (
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={selectedNiche === n}
+                onClick={() => setSelectedNiche(n)}
+                className={`tab-pill text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200 cursor-pointer ${
+                  selectedNiche === n
+                    ? 'tab-pill-active bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold shadow-sm'
+                    : 'bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-200/60 dark:hover:bg-zinc-800'
+                }`}
+              >
+                {n === 'UI/UX & Frontend Architecture' ? 'UI/UX & Frontend' : n === 'Cloud & DevOps Architecture' ? 'Cloud & DevOps' : n}
+              </button>
+            ))}
 
+            {(selectedNiche !== 'All' || selectedAvailability !== 'All' || searchQuery) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedNiche('All');
+                  setSelectedAvailability('All');
+                  setSearchQuery('');
+                }}
+                className="text-xs px-2 py-1 rounded-md text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer flex items-center gap-1 font-medium ml-1"
+                title="Reset all filters"
+              >
+                <X className="w-3.5 h-3.5" /> Reset
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs text-zinc-500 whitespace-nowrap">Availability:</span>
             <select
               value={selectedAvailability}
               onChange={(e) => setSelectedAvailability(e.target.value)}
-              className="h-11 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 px-3 text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500"
+              className="h-8 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 px-2.5 text-xs text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="All">All Availabilities</option>
               <option value="10-15 hrs/week">10-15 hrs/week</option>
@@ -142,8 +170,8 @@ export default function TeammatesPage() {
         </div>
       </div>
 
-      {/* People */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* People Grid with animated tab switch */}
+      <div key={`${selectedNiche}-${selectedAvailability}`} className="grid grid-cols-1 md:grid-cols-2 gap-4 tab-content-enter">
         {filteredStudents.map(student => (
           <Card key={student.id} className="people-listing flex flex-col justify-between">
             <div>
