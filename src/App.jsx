@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { AuthProvider } from './context/AuthContext';
 import { ProjectProvider } from './context/ProjectContext';
+import { ChatProvider } from './context/ChatContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Toast from './components/Toast';
@@ -12,6 +13,8 @@ import CreateProjectModal from './components/CreateProjectModal';
 // Pages
 import HomePage from './pages/HomePage';
 import ProjectsPage from './pages/ProjectsPage';
+import ProjectDashboardPage from './pages/ProjectDashboardPage';
+import MessagesPage from './pages/MessagesPage';
 import CreateProjectPage from './pages/CreateProjectPage';
 import TeammatesPage from './pages/TeammatesPage';
 import ProfilePage from './pages/ProfilePage';
@@ -103,6 +106,13 @@ function MainApp() {
             } 
           />
 
+          {/* Project Dashboard Routes */}
+          <Route path="/project/:projectId" element={<ProjectDashboardPage />} />
+          <Route path="/projects/:projectId" element={<ProjectDashboardPage />} />
+
+          {/* Real-time Messaging Route */}
+          <Route path="/messages" element={<MessagesPage />} />
+
           <Route 
             path="/teammates" 
             element={<TeammatesPage onOpenAuth={handleOpenAuth} />} 
@@ -140,7 +150,9 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ProjectProvider>
-          <MainApp />
+          <ChatProvider>
+            <MainApp />
+          </ChatProvider>
         </ProjectProvider>
       </AuthProvider>
     </BrowserRouter>

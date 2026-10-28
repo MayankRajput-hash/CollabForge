@@ -4,20 +4,32 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const ProjectContext = createContext();
 
+const LEGACY_DEMO_PROJECT_IDS = new Set([
+  'proj-neural-health',
+  'proj-decentralized-mesh',
+  'proj-autonomous-drone'
+]);
+const LEGACY_DEMO_PROFILE_IDS = new Set([
+  'student-alex-chen',
+  'student-priya-patel',
+  'student-marcus-vance',
+  'student-elena-rostova',
+  'student-david-kim'
+]);
+
 export function ProjectProvider({ children }) {
   const { currentUser } = useAuth();
 
-  // Known legacy mock/demo project IDs to purge
-  const DEMO_PROJECT_IDS = new Set(['proj-101', 'proj-102', 'proj-103', 'proj-104']);
-
   const [projects, setProjects] = useState(() => {
     try {
-      const saved = localStorage.getItem('collabforge_projects');
+      const saved = localStorage.getItem('collabforge_projects_v2');
       if (!saved) return [];
       const parsed = JSON.parse(saved);
-      // Remove any legacy mock/demo projects
-      const cleaned = Array.isArray(parsed) ? parsed.filter(p => !DEMO_PROJECT_IDS.has(p?.id)) : [];
-      return cleaned;
+      return Array.isArray(parsed)
+        ? parsed.filter(project =>
+          !LEGACY_DEMO_PROJECT_IDS.has(project.id)
+          && !LEGACY_DEMO_PROFILE_IDS.has(project.ownerId || project.owner_id))
+        : [];
     } catch {
       return [];
     }
@@ -25,12 +37,16 @@ export function ProjectProvider({ children }) {
 
   const [requests, setRequests] = useState(() => {
     try {
-      const saved = localStorage.getItem('collabforge_requests');
+      const saved = localStorage.getItem('collabforge_requests_v2');
       if (!saved) return [];
       const parsed = JSON.parse(saved);
-      // Remove any mock demo requests associated with demo projects
-      const cleaned = Array.isArray(parsed) ? parsed.filter(r => !DEMO_PROJECT_IDS.has(r?.projectId) && r?.id !== 'req-1') : [];
-      return cleaned;
+      return Array.isArray(parsed)
+        ? parsed.filter(request =>
+          request.id !== 'req-initial-1'
+          && !LEGACY_DEMO_PROJECT_IDS.has(request.projectId || request.project_id)
+          && !LEGACY_DEMO_PROFILE_IDS.has(request.fromUserId || request.from_user_id)
+          && !LEGACY_DEMO_PROFILE_IDS.has(request.toUserId || request.to_user_id))
+        : [];
     } catch {
       return [];
     }
@@ -44,10 +60,16 @@ export function ProjectProvider({ children }) {
       const fetchSupabaseProjects = async () => {
         try {
           const { data, error } = await supabase.from('projects').select('*');
-          if (data && !error) {
-            // Keep only non-demo real projects
-            const validRealProjects = data.filter(d => !DEMO_PROJECT_IDS.has(d.id));
-            setProjects(validRealProjects);
+          if (error) throw error;
+          if (data) {
+            setProjects(prev => {
+              const liveProjects = data.filter(project =>
+                !LEGACY_DEMO_PROJECT_IDS.has(project.id)
+                && !LEGACY_DEMO_PROFILE_IDS.has(project.owner_id || project.ownerId));
+              const liveIds = new Set(liveProjects.map(project => project.id));
+              const combined = [...liveProjects, ...prev.filter(project => !liveIds.has(project.id))];
+              return combined;
+            });
           }
         } catch (err) {
           console.warn('Supabase projects fetch warning:', err);
@@ -57,9 +79,13 @@ export function ProjectProvider({ children }) {
       const fetchSupabaseRequests = async () => {
         try {
           const { data, error } = await supabase.from('requests').select('*');
-          if (data && !error) {
-            const validRealRequests = data.filter(r => !DEMO_PROJECT_IDS.has(r.projectId));
-            setRequests(validRealRequests);
+          if (error) throw error;
+          if (data) {
+            setRequests(data.filter(request =>
+              request.id !== 'req-initial-1'
+              && !LEGACY_DEMO_PROJECT_IDS.has(request.project_id || request.projectId)
+              && !LEGACY_DEMO_PROFILE_IDS.has(request.from_user_id || request.fromUserId)
+              && !LEGACY_DEMO_PROFILE_IDS.has(request.to_user_id || request.toUserId)));
           }
         } catch (err) {
           console.warn('Supabase requests fetch warning:', err);
@@ -72,11 +98,19 @@ export function ProjectProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('collabforge_projects', JSON.stringify(projects));
+    try {
+      localStorage.setItem('collabforge_projects_v2', JSON.stringify(projects));
+    } catch (e) {
+      console.warn('Failed saving projects:', e);
+    }
   }, [projects]);
 
   useEffect(() => {
-    localStorage.setItem('collabforge_requests', JSON.stringify(requests));
+    try {
+      localStorage.setItem('collabforge_requests_v2', JSON.stringify(requests));
+    } catch (e) {
+      console.warn('Failed saving requests:', e);
+    }
   }, [requests]);
 
   const showToast = (message, type = 'success') => {
@@ -97,6 +131,17 @@ export function ProjectProvider({ children }) {
       requiredSkills: Array.isArray(projectData.requiredSkills) 
         ? projectData.requiredSkills 
         : (projectData.requiredSkills || '').split(',').map(s => s.trim()).filter(Boolean),
+      tasks: [
+        { id: `task-${Date.now()}-1`, title: 'Repository setup and baseline documentation', status: 'completed', assigneeId: currentUser?.id, assigneeName: currentUser?.name || 'Owner', priority: 'medium' },
+        { id: `task-${Date.now()}-2`, title: 'Draft system architecture diagram', status: 'in-progress', assigneeId: currentUser?.id, assigneeName: currentUser?.name || 'Owner', priority: 'high' }
+      ],
+      milestones: [
+        { id: `m-${Date.now()}-1`, title: 'Initial MVP Specification', completed: true, dueDate: 'In 2 weeks' },
+        { id: `m-${Date.now()}-2`, title: 'First Sprint Integration Release', completed: false, dueDate: 'In 1 month' }
+      ],
+      announcements: [
+        { id: `ann-${Date.now()}`, title: 'Project Created', content: `Excited to kick off ${projectData.title}! Looking for dedicated teammates.`, date: 'Just now', authorName: currentUser?.name || 'Owner' }
+      ],
       ...projectData
     };
 
@@ -112,6 +157,110 @@ export function ProjectProvider({ children }) {
     }
 
     return newProj;
+  };
+
+  const updateProject = async (projectId, updatedFields) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        return { ...p, ...updatedFields };
+      }
+      return p;
+    }));
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('projects').update(updatedFields).eq('id', projectId);
+      } catch (err) {
+        console.warn('Supabase project update warning:', err);
+      }
+    }
+  };
+
+  // Add a task to a project dashboard
+  const addProjectTask = async (projectId, taskData) => {
+    const newTask = {
+      id: `task-${Date.now()}`,
+      title: taskData.title,
+      status: taskData.status || 'todo',
+      priority: taskData.priority || 'medium',
+      assigneeId: taskData.assigneeId || null,
+      assigneeName: taskData.assigneeName || 'Unassigned',
+      dueDate: taskData.dueDate || 'Sprint 1'
+    };
+
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        const tasks = p.tasks ? [newTask, ...p.tasks] : [newTask];
+        return { ...p, tasks };
+      }
+      return p;
+    }));
+
+    showToast(`Task "${taskData.title}" added to project board.`);
+    return newTask;
+  };
+
+  // Update a task status or details
+  const updateProjectTask = async (projectId, taskId, updates) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        const tasks = (p.tasks || []).map(t => {
+          if (t.id === taskId) {
+            return { ...t, ...updates };
+          }
+          return t;
+        });
+        return { ...p, tasks };
+      }
+      return p;
+    }));
+  };
+
+  // Delete a task
+  const deleteProjectTask = async (projectId, taskId) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        return { ...p, tasks: (p.tasks || []).filter(t => t.id !== taskId) };
+      }
+      return p;
+    }));
+    showToast('Task removed from board.', 'info');
+  };
+
+  // Add an announcement
+  const addProjectAnnouncement = async (projectId, { title, content }) => {
+    const newAnnouncement = {
+      id: `ann-${Date.now()}`,
+      title,
+      content,
+      date: 'Just now',
+      authorName: currentUser?.name || 'Team Member'
+    };
+
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        return { ...p, announcements: [newAnnouncement, ...(p.announcements || [])] };
+      }
+      return p;
+    }));
+
+    showToast('Project announcement posted!');
+  };
+
+  // Toggle milestone status
+  const toggleMilestone = async (projectId, milestoneId) => {
+    setProjects(prev => prev.map(p => {
+      if (p.id === projectId) {
+        const milestones = (p.milestones || []).map(m => {
+          if (m.id === milestoneId) {
+            return { ...m, completed: !m.completed };
+          }
+          return m;
+        });
+        return { ...p, milestones };
+      }
+      return p;
+    }));
   };
 
   const sendCollaborationRequest = async ({ projectId, toUserId, message }) => {
@@ -157,6 +306,8 @@ export function ProjectProvider({ children }) {
   };
 
   const updateRequestStatus = async (requestId, status) => {
+    const targetReq = requests.find(r => r.id === requestId);
+
     setRequests(prev => prev.map(req => {
       if (req.id === requestId) {
         return { ...req, status };
@@ -166,6 +317,24 @@ export function ProjectProvider({ children }) {
 
     if (status === 'accepted') {
       showToast('Collaboration request accepted! Teammate added to the project roster.');
+      // Automatically add user to project members list and decrement open spots if possible
+      if (targetReq?.projectId) {
+        setProjects(prev => prev.map(p => {
+          if (p.id === targetReq.projectId) {
+            const currentMembers = Array.isArray(p.members) ? p.members : [];
+            const updatedMembers = currentMembers.includes(targetReq.fromUserId) 
+              ? currentMembers 
+              : [...currentMembers, targetReq.fromUserId];
+            const updatedOpenSpots = Math.max(0, (p.openSpots || 1) - 1);
+            return {
+              ...p,
+              members: updatedMembers,
+              openSpots: updatedOpenSpots
+            };
+          }
+          return p;
+        }));
+      }
     } else {
       showToast('Collaboration request declined.', 'info');
     }
@@ -186,6 +355,12 @@ export function ProjectProvider({ children }) {
       toastMessage,
       showToast,
       addProject,
+      updateProject,
+      addProjectTask,
+      updateProjectTask,
+      deleteProjectTask,
+      addProjectAnnouncement,
+      toggleMilestone,
       sendCollaborationRequest,
       updateRequestStatus
     }}>

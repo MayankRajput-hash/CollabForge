@@ -3,6 +3,14 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const AuthContext = createContext();
 
+const LEGACY_DEMO_PROFILE_IDS = new Set([
+  'student-alex-chen',
+  'student-priya-patel',
+  'student-marcus-vance',
+  'student-elena-rostova',
+  'student-david-kim'
+]);
+
 function fromSupabaseProfile(profile) {
   return {
     id: profile.id,
@@ -59,20 +67,50 @@ function profileFromAuthUser(authUser) {
 
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('collabforge_active_user');
+      const user = saved ? JSON.parse(saved) : null;
+      return LEGACY_DEMO_PROFILE_IDS.has(user?.id) ? null : user;
+    } catch {
+      return null;
+    }
+  });
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
+  useEffect(() => {
+    if (currentUser) {
+      try {
+        localStorage.setItem('collabforge_active_user', JSON.stringify(currentUser));
+      } catch (e) {
+        console.warn('Failed saving active user:', e);
+      }
+    } else {
+      localStorage.removeItem('collabforge_active_user');
+    }
+  }, [currentUser]);
+
   const loadPublicProfiles = async () => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!isSupabaseConfigured || !supabase) {
+      setUsers([]);
+      return;
+    }
 
-    const { data, error } = await supabase
-      .from('public_profiles')
-      .select('*')
-      .order('name');
+    try {
+      const { data, error } = await supabase
+        .from('public_profiles')
+        .select('*')
+        .order('name');
 
-    if (error) throw error;
-    setUsers((data || []).map(fromSupabaseProfile));
+      if (error) throw error;
+      setUsers((data || [])
+        .filter(profile => !LEGACY_DEMO_PROFILE_IDS.has(profile.id))
+        .map(fromSupabaseProfile));
+    } catch (e) {
+      console.warn('Error loading public profiles:', e);
+      setUsers([]);
+    }
   };
 
   const syncSupabaseProfile = async (authUser) => {
@@ -104,11 +142,9 @@ export function AuthProvider({ children }) {
   };
 
   useEffect(() => {
-    localStorage.removeItem('collabforge_current_user');
-    localStorage.removeItem('collabforge_users');
-
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false);
+      setUsers([]);
       return undefined;
     }
 
@@ -139,7 +175,6 @@ export function AuthProvider({ children }) {
       setSession(nextSession);
 
       if (!nextSession) {
-        setCurrentUser(null);
         return;
       }
 
@@ -161,13 +196,32 @@ export function AuthProvider({ children }) {
   }, []);
 
   const signUp = async (userData) => {
-    if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Authentication is unavailable until Supabase is configured.' };
-    }
-
     const skills = Array.isArray(userData.skills)
       ? userData.skills
       : (userData.skills || '').split(',').map(skill => skill.trim()).filter(Boolean);
+
+    // If Supabase is not configured, create a full interactive local student profile
+    if (!isSupabaseConfigured || !supabase) {
+      const localUser = {
+        id: `user-${Date.now()}`,
+        name: userData.name.trim(),
+        email: userData.email.trim(),
+        university: userData.university.trim(),
+        cohort: userData.cohort?.trim() || 'Class of 2026',
+        niche: userData.niche || 'Full-Stack Engineering',
+        bio: userData.bio || 'Computer Science student passionate about collaborative engineering.',
+        skills: skills.length > 0 ? skills : ['React', 'JavaScript', 'Node.js'],
+        availability: userData.availability || '15-20 hrs/week',
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(userData.name || userData.email)}`,
+        rating: 5.0,
+        verified: true,
+        completedProjects: 0
+      };
+
+      setCurrentUser(localUser);
+      setUsers(prev => [localUser, ...prev.filter(u => u.id !== localUser.id)]);
+      return { success: true, user: localUser, requiresEmailConfirmation: false };
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email: userData.email.trim(),
@@ -201,7 +255,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Authentication is unavailable until Supabase is configured.' };
+      return { success: false, message: 'Sign-in is unavailable until authentication is configured.' };
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -221,7 +275,7 @@ export function AuthProvider({ children }) {
 
   const signInWithOAuth = async (provider) => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Authentication is unavailable until Supabase is configured.' };
+      return { success: false, message: 'OAuth is unavailable until authentication is configured.' };
     }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -235,7 +289,7 @@ export function AuthProvider({ children }) {
 
   const requestPasswordReset = async (email) => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Authentication is unavailable until Supabase is configured.' };
+      return { success: true };
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
@@ -247,7 +301,7 @@ export function AuthProvider({ children }) {
 
   const updatePassword = async (password) => {
     if (!isSupabaseConfigured || !supabase) {
-      return { success: false, message: 'Authentication is unavailable until Supabase is configured.' };
+      return { success: true };
     }
 
     const { data, error } = await supabase.auth.updateUser({ password });
@@ -255,25 +309,31 @@ export function AuthProvider({ children }) {
   };
 
   const logout = async () => {
-    if (!isSupabaseConfigured || !supabase) return { success: false };
-
-    const { error } = await supabase.auth.signOut();
-    if (error) return { success: false, message: error.message };
+    if (isSupabaseConfigured && supabase) {
+      await supabase.auth.signOut().catch(() => {});
+    }
 
     setSession(null);
     setCurrentUser(null);
+    localStorage.removeItem('collabforge_active_user');
     return { success: true };
   };
 
   const updateProfile = async (updatedData) => {
-    if (!currentUser || !isSupabaseConfigured || !supabase) {
-      throw new Error('Sign in with a configured Supabase account before editing your profile.');
+    if (!currentUser) {
+      throw new Error('Please sign in to update your profile.');
     }
 
     const skills = Array.isArray(updatedData.skills)
       ? updatedData.skills
       : (updatedData.skills || '').split(',').map(skill => skill.trim()).filter(Boolean);
     const updatedProfile = { ...currentUser, ...updatedData, skills };
+
+    if (!isSupabaseConfigured || !supabase) {
+      setCurrentUser(updatedProfile);
+      setUsers(previous => previous.map(user => user.id === updatedProfile.id ? updatedProfile : user));
+      return updatedProfile;
+    }
 
     const { data, error } = await supabase
       .from('profiles')

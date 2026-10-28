@@ -235,27 +235,44 @@ export default function TeammatesPage() {
             </div>
 
             {/* Actions */}
-            <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+            <div className="mt-6 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center gap-2 flex-wrap">
               <Button variant="outline" size="sm" onClick={() => setActiveProfileModal(student)}>
                 View profile
               </Button>
-              {currentUser ? (
-                <Button variant="gradient" size="sm" onClick={() => handleOpenConnect(student)}>
-                <Send className="w-3.5 h-3.5 mr-1.5" /> Send a message
-                </Button>
-              ) : (
-                <Button asChild variant="gradient" size="sm">
+              
+              <div className="flex items-center gap-2">
+                {currentUser && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link to={`/messages?partnerId=${student.id}`}>
+                      Chat &rarr;
+                    </Link>
+                  </Button>
+                )}
+
+                {currentUser ? (
+                  <Button variant="gradient" size="sm" onClick={() => handleOpenConnect(student)}>
+                    <Send className="w-3.5 h-3.5 mr-1.5" /> Invite
+                  </Button>
+                ) : (
+                  <Button asChild variant="gradient" size="sm">
                     <Link to="/signup">Sign in to connect</Link>
-                </Button>
-              )}
+                  </Button>
+                )}
+              </div>
             </div>
           </Card>
         ))}
       </div>
       {filteredStudents.length === 0 && (
         <div className="project-empty-state">
-          <p className="text-base font-semibold mb-1">No profiles found</p>
-          <p className="text-sm">Try another search or filter.</p>
+          <p className="text-base font-semibold mb-1">
+            {candidateStudents.length === 0 ? 'No collaborator profiles yet' : 'No profiles found'}
+          </p>
+          <p className="text-sm">
+            {candidateStudents.length === 0
+              ? 'New profiles will appear here when students join CollabForge.'
+              : 'Try another search or filter.'}
+          </p>
         </div>
       )}
 

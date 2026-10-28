@@ -144,9 +144,10 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <Button type="submit" variant="gradient" className="w-full mt-2" disabled={loading || !isSupabaseConfigured}>
+            <Button type="submit" variant="gradient" className="w-full mt-2" disabled={loading}>
               {loading ? 'Authenticating...' : 'Sign In'} <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
+
           </form>
 
           {/* OAuth Buttons */}

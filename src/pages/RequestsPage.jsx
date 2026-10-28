@@ -147,8 +147,26 @@ export default function RequestsPage() {
                         </button>
                       </div>
                     ) : (
-                      <div style={{ textAlign: 'right', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                        {req.status === 'accepted' ? 'Accepted' : 'Declined'}
+                      <div className="flex items-center justify-end gap-2 pt-1">
+                        <span className="text-xs font-semibold text-zinc-500 mr-2">
+                          {req.status === 'accepted' ? 'Accepted' : 'Declined'}
+                        </span>
+                        {req.status === 'accepted' && (
+                          <>
+                            <Link 
+                              to={`/messages?partnerId=${req.fromUserId}`} 
+                              className="btn btn-primary text-xs py-1.5 px-3 gap-1"
+                            >
+                              <Send size={13} /> Chat with {req.fromUserName.split(' ')[0]}
+                            </Link>
+                            <Link 
+                              to={`/project/${req.projectId}`} 
+                              className="btn btn-secondary text-xs py-1.5 px-3 gap-1"
+                            >
+                              Open Dashboard &rarr;
+                            </Link>
+                          </>
+                        )}
                       </div>
                     )}
                   </div>
@@ -201,6 +219,23 @@ export default function RequestsPage() {
                     <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5', background: 'var(--card-bg)', padding: '0.8rem', borderRadius: '8px' }}>
                       "{req.message}"
                     </p>
+
+                    {req.status === 'accepted' && (
+                      <div className="flex items-center justify-end gap-2 pt-3">
+                        <Link 
+                          to={`/messages?partnerId=${req.toUserId}`} 
+                          className="btn btn-primary text-xs py-1.5 px-3 gap-1"
+                        >
+                          <Send size={13} /> Chat with Team Lead
+                        </Link>
+                        <Link 
+                          to={`/project/${req.projectId}`} 
+                          className="btn btn-secondary text-xs py-1.5 px-3 gap-1"
+                        >
+                          Open Dashboard &rarr;
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 ))}
 

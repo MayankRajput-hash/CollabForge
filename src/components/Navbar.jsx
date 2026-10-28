@@ -95,6 +95,23 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject 
               )}
             </Link>
           )}
+
+          <Link 
+            to="/messages" 
+            className="tab-pill"
+            style={{ 
+              color: isActive('/messages') ? 'var(--accent-1)' : 'var(--text-secondary)',
+              fontWeight: isActive('/messages') ? 600 : 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              textDecoration: 'none',
+              padding: '0.35rem 0.65rem',
+              borderRadius: '8px',
+              backgroundColor: isActive('/messages') ? 'var(--bg-secondary)' : 'transparent'
+            }}>
+            Messages
+          </Link>
         </div>
 
         {/* Right Actions */}
@@ -252,6 +269,9 @@ export default function Navbar({ isDarkMode, setIsDarkMode, onOpenCreateProject 
               </Link>
               <Link to="/requests" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
                 Inbox ({pendingRequestsCount})
+              </Link>
+              <Link to="/messages" onClick={() => setMobileMenuOpen(false)} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
+                Messages
               </Link>
               <button onClick={() => { onOpenCreateProject(); setMobileMenuOpen(false); }} className="btn btn-primary" style={{ marginTop: '0.5rem' }}>
                 Post Capstone Project

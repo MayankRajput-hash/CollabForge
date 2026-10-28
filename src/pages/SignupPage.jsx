@@ -91,8 +91,8 @@ export default function SignupPage() {
 
         <CardContent className="space-y-4">
           {!isSupabaseConfigured && (
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs">
-              Sign-up is currently unavailable. Please try again later.
+            <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs flex items-center justify-between gap-2">
+              <span>🚀 Local workspace active: You can create your account and explore immediately!</span>
             </div>
           )}
 
@@ -253,7 +253,7 @@ export default function SignupPage() {
               </span>
             </div>
 
-            <Button type="submit" variant="gradient" className="w-full mt-4" disabled={loading || !isSupabaseConfigured}>
+            <Button type="submit" variant="gradient" className="w-full mt-4" disabled={loading}>
               {loading ? 'Creating account...' : 'Create account'} <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </form>

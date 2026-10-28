@@ -179,24 +179,32 @@ export default function ProjectsPage() {
               </div>
 
               {/* Actions Footer */}
-              <div className="project-listing-actions">
-                {isOwner ? (
-                  <Badge variant="outline">
-                    Your project
-                  </Badge>
-                ) : hasRequested ? (
-                  <Badge variant="secondary" className="gap-1">
-                    <Check className="w-3 h-3" /> Requested
-                  </Badge>
-                ) : currentUser ? (
-                  <Button size="sm" onClick={() => handleOpenApply(proj)}>
-                    <Send className="w-3.5 h-3.5 mr-1.5" /> Contact owner
-                  </Button>
-                ) : (
-                  <Button asChild size="sm" variant="gradient">
-                    <Link to="/login">Sign in to contact</Link>
-                  </Button>
-                )}
+              <div className="project-listing-actions flex items-center justify-between gap-2">
+                <Button asChild size="sm" variant="outline" className="text-xs">
+                  <Link to={`/project/${proj.id}`}>
+                    View Dashboard &rarr;
+                  </Link>
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  {isOwner ? (
+                    <Badge variant="outline">
+                      Your project
+                    </Badge>
+                  ) : hasRequested ? (
+                    <Badge variant="secondary" className="gap-1">
+                      <Check className="w-3 h-3" /> Requested
+                    </Badge>
+                  ) : currentUser ? (
+                    <Button size="sm" onClick={() => handleOpenApply(proj)}>
+                      <Send className="w-3.5 h-3.5 mr-1.5" /> Contact owner
+                    </Button>
+                  ) : (
+                    <Button asChild size="sm" variant="gradient">
+                      <Link to="/login">Sign in to contact</Link>
+                    </Button>
+                  )}
+                </div>
               </div>
             </article>
           );
