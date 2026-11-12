@@ -47,23 +47,23 @@ export default function ProjectsPage() {
     setApplyMessage(`Hi ${project.ownerName}, I'd love to collaborate on "${project.title}".`);
   };
 
-  const handleSendApplication = (e) => {
+  const handleSendApplication = async (e) => {
     e.preventDefault();
     if (!applyModalProject) return;
 
-    sendCollaborationRequest({
+    const sent = await sendCollaborationRequest({
       projectId: applyModalProject.id,
       toUserId: applyModalProject.ownerId,
       message: applyMessage
     });
 
-    setApplyModalProject(null);
+    if (sent) setApplyModalProject(null);
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+    <div className="discovery-page projects-page max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="discovery-hero discovery-hero--projects flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
             <Compass className="w-4 h-4" /> Projects
@@ -84,7 +84,7 @@ export default function ProjectsPage() {
       </div>
 
       {/* Filter and Search Controls */}
-      <div className="project-filters mb-8">
+      <div className="project-filters discovery-filters mb-8">
         <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
           <div className="relative w-full md:flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -133,13 +133,14 @@ export default function ProjectsPage() {
       </div>
 
       {/* Project Cards Grid with animated tab switch */}
-      <div key={selectedCategory} className="project-list tab-content-enter">
+      <div key={selectedCategory} className="project-list discovery-project-grid tab-content-enter">
         {filteredProjects.map(proj => {
           const hasRequested = requests.some(r => r.projectId === proj.id && r.fromUserId === currentUser?.id);
           const isOwner = currentUser?.id === proj.ownerId;
+          const isMember = (proj.members || []).includes(currentUser?.id);
 
           return (
-            <article key={proj.id} className="project-listing">
+            <article key={proj.id} className="project-listing discovery-project-card">
               <div>
                 <div className="project-listing-heading">
                   <div>
@@ -191,6 +192,10 @@ export default function ProjectsPage() {
                     <Badge variant="outline">
                       Your project
                     </Badge>
+                  ) : isMember ? (
+                    <Badge variant="outline">
+                      Team member
+                    </Badge>
                   ) : hasRequested ? (
                     <Badge variant="secondary" className="gap-1">
                       <Check className="w-3 h-3" /> Requested
@@ -212,7 +217,7 @@ export default function ProjectsPage() {
       </div>
 
       {filteredProjects.length === 0 && (
-        <div className="project-empty-state text-center py-12 px-4 glass-panel border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
+        <div className="project-empty-state discovery-empty-state text-center py-12 px-4 glass-panel border border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
           <p className="text-base font-semibold mb-1 text-zinc-800 dark:text-zinc-200">
             {projects.length === 0 ? 'No projects published yet' : 'No matching projects found'}
           </p>

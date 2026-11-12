@@ -2,34 +2,28 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { 
   Users, 
-  Calendar, 
   Clock, 
   CheckCircle2, 
   Circle, 
   Plus, 
   Trash2, 
-  Send, 
   ArrowLeft, 
   MessageSquare, 
   Check, 
   AlertCircle,
   ExternalLink,
   Globe,
-  Layers,
-  Sparkles,
   Kanban,
   Flag,
   Radio,
-  FileCode2,
   Megaphone,
-  UserCheck
 } from 'lucide-react';
 import { useProjects } from '../context/ProjectContext';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/card';
+import { Card } from '../components/ui/card';
 import { Input } from '../components/ui/input';
 
 export default function ProjectDashboardPage() {
@@ -37,18 +31,17 @@ export default function ProjectDashboardPage() {
   const navigate = useNavigate();
   const { 
     projects, 
+    isLoading,
     addProjectTask, 
     updateProjectTask, 
     deleteProjectTask, 
     addProjectAnnouncement, 
-    toggleMilestone,
-    sendCollaborationRequest,
-    requests
+    toggleMilestone
   } = useProjects();
   const { currentUser, users } = useAuth();
   const { openChatWith } = useChat();
 
-  const [activeTab, setActiveTab] = useState('kanban'); // 'kanban', 'milestones', 'announcements', 'overview'
+  const [activeTab, setActiveTab] = useState('kanban');
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskStatus, setNewTaskStatus] = useState('todo');
   const [newTaskPriority, setNewTaskPriority] = useState('medium');
@@ -59,6 +52,10 @@ export default function ProjectDashboardPage() {
 
   // Find targeted project
   const project = projects.find(p => p.id === projectId);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center text-sm text-zinc-500">Loading project...</div>;
+  }
 
   if (!project) {
     return (
@@ -97,13 +94,13 @@ export default function ProjectDashboardPage() {
   const milestones = project.milestones || [];
   const announcements = project.announcements || [];
 
-  const handleCreateTask = (e) => {
+  const handleCreateTask = async (e) => {
     e.preventDefault();
-    if (!newTaskTitle.trim()) return;
+    if (!isMember || !newTaskTitle.trim()) return;
 
     const assignee = projectMembers.find(m => m.id === newTaskAssigneeId);
 
-    addProjectTask(project.id, {
+    const saved = await addProjectTask(project.id, {
       title: newTaskTitle.trim(),
       status: newTaskStatus,
       priority: newTaskPriority,
@@ -111,21 +108,25 @@ export default function ProjectDashboardPage() {
       assigneeName: assignee ? assignee.name : 'Unassigned'
     });
 
-    setNewTaskTitle('');
-    setNewTaskAssigneeId('');
+    if (saved) {
+      setNewTaskTitle('');
+      setNewTaskAssigneeId('');
+    }
   };
 
-  const handlePostAnnouncement = (e) => {
+  const handlePostAnnouncement = async (e) => {
     e.preventDefault();
-    if (!announcementTitle.trim() || !announcementContent.trim()) return;
+    if (!isMember || !announcementTitle.trim() || !announcementContent.trim()) return;
 
-    addProjectAnnouncement(project.id, {
+    const saved = await addProjectAnnouncement(project.id, {
       title: announcementTitle.trim(),
       content: announcementContent.trim()
     });
 
-    setAnnouncementTitle('');
-    setAnnouncementContent('');
+    if (saved) {
+      setAnnouncementTitle('');
+      setAnnouncementContent('');
+    }
   };
 
   const handleChatWithMember = (memberId) => {
@@ -170,7 +171,7 @@ export default function ProjectDashboardPage() {
 
           {/* Action Hub */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            {project.ownerId !== currentUser?.id && (
+            {currentUser && project.ownerId !== currentUser.id && (
               <Button 
                 variant="gradient" 
                 size="sm" 
@@ -205,6 +206,12 @@ export default function ProjectDashboardPage() {
           </div>
         </div>
       </div>
+
+      {!isMember && (
+        <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+          This workspace is read-only. Join the project to manage its tasks, milestones, and announcements.
+        </div>
+      )}
 
       {/* Progress & Quick Stats Banner */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -322,7 +329,7 @@ export default function ProjectDashboardPage() {
       {activeTab === 'kanban' && (
         <div className="space-y-6">
           {/* Quick Add Task Form */}
-          <Card className="p-4 border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50">
+          {isMember && <Card className="p-4 border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-900/50">
             <form onSubmit={handleCreateTask} className="flex flex-col sm:flex-row gap-3 items-center">
               <Input
                 placeholder="Add a new deliverable or task..."
@@ -369,7 +376,7 @@ export default function ProjectDashboardPage() {
                 </Button>
               </div>
             </form>
-          </Card>
+          </Card>}
 
           {/* Kanban Columns */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -388,25 +395,25 @@ export default function ProjectDashboardPage() {
                   <Card key={task.id} className="p-3.5 shadow-sm hover:shadow-md transition-all border-zinc-200/80 dark:border-zinc-800/80">
                     <div className="flex justify-between items-start gap-2 mb-2">
                       <span className="text-xs font-semibold leading-snug">{task.title}</span>
-                      <button 
+                      {isMember && <button
                         onClick={() => deleteProjectTask(project.id, task.id)}
                         className="text-zinc-400 hover:text-red-500 transition-colors p-1"
                         title="Delete task"
                       >
                         <Trash2 size={13} />
-                      </button>
+                      </button>}
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                       <span className="flex items-center gap-1 font-medium">
                         {task.assigneeName}
                       </span>
-                      <button
+                      {isMember && <button
                         onClick={() => updateProjectTask(project.id, task.id, { status: 'in-progress' })}
                         className="text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer font-medium"
                       >
                         Start &rarr;
-                      </button>
+                      </button>}
                     </div>
                   </Card>
                 ))}
@@ -434,20 +441,20 @@ export default function ProjectDashboardPage() {
                   <Card key={task.id} className="p-3.5 shadow-sm border-l-4 border-l-amber-500 hover:shadow-md transition-all border-zinc-200/80 dark:border-zinc-800/80">
                     <div className="flex justify-between items-start gap-2 mb-2">
                       <span className="text-xs font-semibold leading-snug">{task.title}</span>
-                      <button 
+                      {isMember && <button
                         onClick={() => deleteProjectTask(project.id, task.id)}
                         className="text-zinc-400 hover:text-red-500 transition-colors p-1"
                         title="Delete task"
                       >
                         <Trash2 size={13} />
-                      </button>
+                      </button>}
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-zinc-500 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                       <span className="flex items-center gap-1 font-medium">
                         {task.assigneeName}
                       </span>
-                      <div className="flex gap-2">
+                      {isMember && <div className="flex gap-2">
                         <button
                           onClick={() => updateProjectTask(project.id, task.id, { status: 'todo' })}
                           className="text-zinc-400 hover:underline cursor-pointer"
@@ -460,7 +467,7 @@ export default function ProjectDashboardPage() {
                         >
                           Complete &rarr;
                         </button>
-                      </div>
+                      </div>}
                     </div>
                   </Card>
                 ))}
@@ -488,23 +495,23 @@ export default function ProjectDashboardPage() {
                   <Card key={task.id} className="p-3.5 shadow-sm border-l-4 border-l-emerald-500 bg-emerald-500/5 opacity-90 transition-all border-zinc-200/80 dark:border-zinc-800/80">
                     <div className="flex justify-between items-start gap-2 mb-2">
                       <span className="text-xs font-semibold leading-snug line-through text-zinc-500">{task.title}</span>
-                      <button 
+                      {isMember && <button
                         onClick={() => deleteProjectTask(project.id, task.id)}
                         className="text-zinc-400 hover:text-red-500 transition-colors p-1"
                         title="Delete task"
                       >
                         <Trash2 size={13} />
-                      </button>
+                      </button>}
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-zinc-400 pt-2 border-t border-zinc-100 dark:border-zinc-800/60">
                       <span>Completed by {task.assigneeName}</span>
-                      <button
+                      {isMember && <button
                         onClick={() => updateProjectTask(project.id, task.id, { status: 'in-progress' })}
                         className="text-zinc-500 hover:underline cursor-pointer"
                       >
                         Reopen
-                      </button>
+                      </button>}
                     </div>
                   </Card>
                 ))}
@@ -534,7 +541,7 @@ export default function ProjectDashboardPage() {
             {milestones.map(m => (
               <div key={m.id} className="py-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <button
+                  {isMember ? <button
                     onClick={() => toggleMilestone(project.id, m.id)}
                     className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors cursor-pointer ${
                       m.completed 
@@ -543,7 +550,9 @@ export default function ProjectDashboardPage() {
                     }`}
                   >
                     {m.completed && <Check size={14} />}
-                  </button>
+                  </button> : <span className={`w-6 h-6 rounded-lg flex items-center justify-center ${m.completed ? 'bg-emerald-500 text-white' : 'border-2 border-zinc-300 dark:border-zinc-700'}`}>
+                    {m.completed && <Check size={14} />}
+                  </span>}
                   <div>
                     <h4 className={`text-sm font-semibold ${m.completed ? 'line-through text-zinc-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
                       {m.title}
@@ -565,7 +574,7 @@ export default function ProjectDashboardPage() {
       {activeTab === 'announcements' && (
         <div className="space-y-6">
           {/* Post announcement */}
-          <Card className="p-5 border-zinc-200/80 dark:border-zinc-800/80">
+          {isMember && <Card className="p-5 border-zinc-200/80 dark:border-zinc-800/80">
             <h3 className="text-base font-bold mb-1">Post Team Announcement</h3>
             <p className="text-xs text-zinc-500 mb-4">Broadcast a milestone or meeting agenda to teammates.</p>
 
@@ -590,7 +599,7 @@ export default function ProjectDashboardPage() {
                 </Button>
               </div>
             </form>
-          </Card>
+          </Card>}
 
           {/* Announcements stream */}
           <div className="space-y-4">

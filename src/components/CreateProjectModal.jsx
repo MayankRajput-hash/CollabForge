@@ -14,11 +14,11 @@ export default function CreateProjectModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !description) return;
 
-    addProject({
+    const project = await addProject({
       title,
       category,
       description,
@@ -28,7 +28,7 @@ export default function CreateProjectModal({ isOpen, onClose }) {
       deadline
     });
 
-    onClose();
+    if (project) onClose();
   };
 
   return (

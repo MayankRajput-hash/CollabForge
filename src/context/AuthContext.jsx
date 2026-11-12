@@ -68,6 +68,7 @@ function profileFromAuthUser(authUser) {
 export function AuthProvider({ children }) {
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(() => {
+    if (isSupabaseConfigured) return null;
     try {
       const saved = localStorage.getItem('collabforge_active_user');
       const user = saved ? JSON.parse(saved) : null;
@@ -143,8 +144,6 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
-      setLoading(false);
-      setUsers([]);
       return undefined;
     }
 
@@ -159,6 +158,8 @@ export function AuthProvider({ children }) {
         setSession(data.session);
         if (data.session?.user) {
           await syncSupabaseProfile(data.session.user);
+        } else {
+          setCurrentUser(null);
         }
         await loadPublicProfiles();
       } catch (error) {

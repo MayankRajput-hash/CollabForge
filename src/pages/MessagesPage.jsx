@@ -24,16 +24,18 @@ export default function MessagesPage() {
     activePartnerId, 
     setActivePartnerId, 
     activeMessages, 
-    sendMessage 
+    sendMessage,
+    isRealtimeConnected
   } = useChat();
 
-  const { currentUser, users } = useAuth();
+  const { currentUser, users, isSupabaseConfigured } = useAuth();
   const { projects } = useProjects();
   const location = useLocation();
 
   const [inputMessage, setInputMessage] = useState('');
   const [searchFilter, setSearchFilter] = useState('');
   const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [sendError, setSendError] = useState('');
   const messagesEndRef = useRef(null);
 
   // Parse partnerId from query param if available (e.g. /messages?partnerId=...)
@@ -43,16 +45,8 @@ export default function MessagesPage() {
     if (partnerParam) {
       setActivePartnerId(partnerParam);
       setMobileShowChat(true);
-    } else if (!activePartnerId && conversations.length > 0) {
-      setActivePartnerId(conversations[0].partnerId);
-    } else if (!activePartnerId && users.length > 0) {
-      // Default to first user who is not current user
-      const candidate = users.find(u => u.id !== currentUser?.id);
-      if (candidate) {
-        setActivePartnerId(candidate.id);
-      }
     }
-  }, [location.search, conversations, users, currentUser, activePartnerId, setActivePartnerId]);
+  }, [location.search, setActivePartnerId]);
 
   // Scroll to bottom whenever messages update
   useEffect(() => {
@@ -61,8 +55,8 @@ export default function MessagesPage() {
 
   if (!currentUser) {
     return (
-      <div className="min-h-screen pt-32 pb-20 px-4 flex items-center justify-center">
-        <Card className="max-w-md w-full p-8 text-center border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl glass-panel">
+      <div className="messages-gate min-h-screen pt-32 pb-20 px-4 flex items-center justify-center">
+        <Card className="messages-gate-card max-w-md w-full p-8 text-center border-zinc-200/80 dark:border-zinc-800/80 shadow-2xl glass-panel">
           <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4">
             <MessageSquare className="w-7 h-7" />
           </div>
@@ -103,22 +97,23 @@ export default function MessagesPage() {
            (u.university && u.university.toLowerCase().includes(query));
   });
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim() || !activePartnerId) return;
 
-    sendMessage({
-      receiverId: activePartnerId,
-      text: inputMessage
-    });
-
-    setInputMessage('');
+    setSendError('');
+    try {
+      await sendMessage({ receiverId: activePartnerId, text: inputMessage });
+      setInputMessage('');
+    } catch (error) {
+      setSendError(error.message || 'Could not send this message.');
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 min-h-[calc(100vh-80px)]">
+    <div className="messages-page max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 min-h-[calc(100vh-80px)]">
       {/* Top Header Breadcrumb */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+      <div className="messages-heading flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
             <MessageSquare className="w-4 h-4" /> Real-Time Workspace
@@ -138,10 +133,10 @@ export default function MessagesPage() {
       </div>
 
       {/* Main Chat Layout Container */}
-      <div className="glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xl h-[700px] flex flex-col md:flex-row">
+      <div className="messages-shell glass-panel border border-zinc-200/80 dark:border-zinc-800/80 rounded-2xl overflow-hidden shadow-2xl h-[700px] flex flex-col md:flex-row">
         
         {/* LEFT COLUMN: Teammates / Contacts List */}
-        <aside className={`w-full md:w-80 lg:w-96 border-r border-zinc-200/80 dark:border-zinc-800/80 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/50 ${
+        <aside className={`messages-contacts w-full md:w-80 lg:w-96 border-r border-zinc-200/80 dark:border-zinc-800/80 flex flex-col bg-zinc-50/50 dark:bg-zinc-900/50 ${
           mobileShowChat ? 'hidden md:flex' : 'flex'
         }`}>
           {/* Search Contacts */}
@@ -171,11 +166,12 @@ export default function MessagesPage() {
                 <button
                   key={student.id}
                   type="button"
+                  aria-pressed={isActive}
                   onClick={() => {
                     setActivePartnerId(student.id);
                     setMobileShowChat(true);
                   }}
-                  className={`w-full text-left p-3.5 transition-all flex items-start gap-3 cursor-pointer ${
+                  className={`message-contact w-full text-left p-3.5 transition-all flex items-start gap-3 cursor-pointer ${
                     isActive 
                       ? 'bg-indigo-500/10 border-l-4 border-indigo-600 dark:border-indigo-400' 
                       : 'hover:bg-zinc-100/60 dark:hover:bg-zinc-800/50'
@@ -229,7 +225,7 @@ export default function MessagesPage() {
         </aside>
 
         {/* RIGHT COLUMN: Active Chat Messages & Composer */}
-        <section className={`flex-1 flex flex-col bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md ${
+        <section className={`messages-thread flex-1 flex flex-col bg-white/60 dark:bg-zinc-950/40 backdrop-blur-md ${
           !mobileShowChat ? 'hidden md:flex' : 'flex'
         }`}>
           {activePartnerId ? (
@@ -288,7 +284,7 @@ export default function MessagesPage() {
               {/* Chat Message Scroll Area */}
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
                 {/* Conversation welcome header */}
-                <div className="text-center py-4 mb-2 border-b border-dashed border-zinc-200/80 dark:border-zinc-800/80">
+                <div className="message-welcome text-center py-4 mb-2 border-b border-dashed border-zinc-200/80 dark:border-zinc-800/80">
                   <div className="inline-flex p-2.5 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 mb-2">
                     <Sparkles className="w-5 h-5" />
                   </div>
@@ -307,7 +303,7 @@ export default function MessagesPage() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex gap-3 items-end ${isMe ? 'justify-end' : 'justify-start'}`}
+                      className={`message-line flex gap-3 items-end ${isMe ? 'justify-end' : 'justify-start'}`}
                     >
                       {!isMe && (
                         <img
@@ -317,7 +313,7 @@ export default function MessagesPage() {
                         />
                       )}
 
-                      <div className={`max-w-[78%] sm:max-w-[68%] rounded-2xl p-3.5 text-sm ${
+                      <div className={`message-bubble max-w-[78%] sm:max-w-[68%] rounded-2xl p-3.5 text-sm ${
                         isMe 
                           ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-md rounded-br-xs'
                           : 'bg-zinc-100 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 border border-zinc-200/60 dark:border-zinc-700/60 rounded-bl-xs'
@@ -345,6 +341,7 @@ export default function MessagesPage() {
                   <Input
                     placeholder={`Message ${activePartner.name}...`}
                     value={inputMessage}
+                    maxLength={5000}
                     onChange={(e) => setInputMessage(e.target.value)}
                     className="flex-1 bg-white dark:bg-zinc-950/70 border-zinc-200 dark:border-zinc-800 rounded-xl h-11 text-sm focus-visible:ring-indigo-500"
                     autoFocus
@@ -354,10 +351,14 @@ export default function MessagesPage() {
                     <span className="hidden sm:inline">Send</span>
                   </Button>
                 </div>
+                {sendError && <p role="alert" className="text-xs text-red-600 dark:text-red-400 mt-2">{sendError}</p>}
                 <div className="flex items-center justify-between text-[11px] text-zinc-400 mt-2 px-1">
                   <span>Press <b>Enter</b> to send message instantly</span>
                   <span className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Real-time peer link connected
+                    <span className={`w-2 h-2 rounded-full ${isRealtimeConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                    {!isSupabaseConfigured
+                      ? 'Local device only'
+                      : isRealtimeConnected ? 'Real-time connected' : 'Offline / reconnecting'}
                   </span>
                 </div>
               </form>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { AuthProvider } from './context/AuthContext';
@@ -10,18 +10,17 @@ import Toast from './components/Toast';
 import AuthModal from './components/AuthModal';
 import CreateProjectModal from './components/CreateProjectModal';
 
-// Pages
-import HomePage from './pages/HomePage';
-import ProjectsPage from './pages/ProjectsPage';
-import ProjectDashboardPage from './pages/ProjectDashboardPage';
-import MessagesPage from './pages/MessagesPage';
-import CreateProjectPage from './pages/CreateProjectPage';
-import TeammatesPage from './pages/TeammatesPage';
-import ProfilePage from './pages/ProfilePage';
-import RequestsPage from './pages/RequestsPage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import UpdatePasswordPage from './pages/UpdatePasswordPage';
+const HomePage = lazy(() => import('./pages/HomePage'));
+const ProjectsPage = lazy(() => import('./pages/ProjectsPage'));
+const ProjectDashboardPage = lazy(() => import('./pages/ProjectDashboardPage'));
+const MessagesPage = lazy(() => import('./pages/MessagesPage'));
+const CreateProjectPage = lazy(() => import('./pages/CreateProjectPage'));
+const TeammatesPage = lazy(() => import('./pages/TeammatesPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const RequestsPage = lazy(() => import('./pages/RequestsPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const SignupPage = lazy(() => import('./pages/SignupPage'));
+const UpdatePasswordPage = lazy(() => import('./pages/UpdatePasswordPage'));
 
 import './index.css';
 
@@ -69,6 +68,7 @@ function MainApp() {
       />
 
       <main className="flex-1">
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-sm text-zinc-500">Loading page...</div>}>
         <Routes>
           <Route 
             path="/" 
@@ -124,6 +124,7 @@ function MainApp() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </main>
 
       <Footer />

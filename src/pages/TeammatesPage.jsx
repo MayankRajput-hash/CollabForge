@@ -21,7 +21,7 @@ import { Card, CardTitle, CardDescription } from '../components/ui/card';
 
 export default function TeammatesPage() {
   const { users, currentUser } = useAuth();
-  const { sendCollaborationRequest, projects } = useProjects();
+  const { sendCollaborationRequest, projects, showToast } = useProjects();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedNiche, setSelectedNiche] = useState('All');
@@ -43,6 +43,7 @@ export default function TeammatesPage() {
 
   // Exclude current user from prospective candidate cards
   const candidateStudents = users.filter(u => u.id !== currentUser?.id);
+  const userProjects = projects.filter(project => project.ownerId === currentUser?.id);
 
   // Compute live match scores using Cosine Similarity & Jaccard Index
   const scoredStudents = candidateStudents.map(student => {
@@ -68,30 +69,33 @@ export default function TeammatesPage() {
 
   const handleOpenConnect = (student) => {
     if (!currentUser) return;
+    if (userProjects.length === 0) {
+      showToast('Create a project before inviting a teammate. You can message them directly from their profile.', 'info');
+      return;
+    }
     setConnectStudent(student);
-    const userProjects = projects.filter(p => p.ownerId === currentUser.id);
-    const defaultProjId = userProjects[0]?.id || projects[0]?.id || '';
+    const defaultProjId = userProjects[0].id;
     setConnectProjectId(defaultProjId);
     setConnectMessage(`Hi ${student.name}, I'd like to connect about working together.`);
   };
 
-  const handleSendConnect = (e) => {
+  const handleSendConnect = async (e) => {
     e.preventDefault();
     if (!connectStudent) return;
 
-    sendCollaborationRequest({
+    const sent = await sendCollaborationRequest({
       projectId: connectProjectId,
       toUserId: connectStudent.id,
       message: connectMessage
     });
 
-    setConnectStudent(null);
+    if (sent) setConnectStudent(null);
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
+    <div className="discovery-page teammates-page max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20">
       {/* Header */}
-      <div className="mb-8">
+      <div className="discovery-hero discovery-hero--people mb-8">
         <div className="flex items-center gap-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
           <Sparkles className="w-4 h-4" /> People to work with
         </div>
@@ -104,7 +108,7 @@ export default function TeammatesPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="project-filters mb-8">
+      <div className="project-filters discovery-filters mb-8">
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <div className="relative w-full md:flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -171,9 +175,9 @@ export default function TeammatesPage() {
       </div>
 
       {/* People Grid with animated tab switch */}
-      <div key={`${selectedNiche}-${selectedAvailability}`} className="grid grid-cols-1 md:grid-cols-2 gap-4 tab-content-enter">
+      <div key={`${selectedNiche}-${selectedAvailability}`} className="people-grid grid grid-cols-1 md:grid-cols-2 gap-4 tab-content-enter">
         {filteredStudents.map(student => (
-          <Card key={student.id} className="people-listing flex flex-col justify-between">
+          <Card key={student.id} className="people-listing discovery-person-card flex flex-col justify-between">
             <div>
               {/* Top Profile Bar */}
               <div className="flex justify-between items-start gap-4 mb-4">
@@ -264,7 +268,7 @@ export default function TeammatesPage() {
         ))}
       </div>
       {filteredStudents.length === 0 && (
-        <div className="project-empty-state">
+        <div className="project-empty-state discovery-empty-state">
           <p className="text-base font-semibold mb-1">
             {candidateStudents.length === 0 ? 'No collaborator profiles yet' : 'No profiles found'}
           </p>
@@ -377,7 +381,7 @@ export default function TeammatesPage() {
                   onChange={(e) => setConnectProjectId(e.target.value)}
                   className="w-full h-11 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950/60 px-3 text-sm text-zinc-900 dark:text-zinc-100 outline-none focus:ring-2 focus:ring-indigo-500"
                 >
-                  {projects.map(p => (
+                  {userProjects.map(p => (
                     <option key={p.id} value={p.id}>{p.title}</option>
                   ))}
                 </select>

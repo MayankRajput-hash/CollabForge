@@ -1,6 +1,7 @@
 // Context provider for real-time peer-to-peer and team messaging
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from './AuthContext';
+import { useProjects } from './ProjectContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const ChatContext = createContext();
@@ -16,10 +17,11 @@ const LEGACY_DEMO_PROFILE_IDS = new Set([
 
 export function ChatProvider({ children }) {
   const { currentUser, users } = useAuth();
+  const { showToast } = useProjects();
+  const currentUserId = currentUser?.id;
 
-  // Messages store: array of message objects
-  // { id, conversationId, senderId, senderName, senderAvatar, text, timestamp, attachments }
   const [messages, setMessages] = useState(() => {
+    if (isSupabaseConfigured) return [];
     try {
       const saved = localStorage.getItem(STORAGE_CHATS_KEY);
       if (!saved) return [];
@@ -36,9 +38,11 @@ export function ChatProvider({ children }) {
 
   // Active peer/teammate selected in messaging view
   const [activePartnerId, setActivePartnerId] = useState(null);
+  const [isRealtimeConnected, setRealtimeConnected] = useState(false);
 
   // Sync to localStorage
   useEffect(() => {
+    if (isSupabaseConfigured) return;
     try {
       localStorage.setItem(STORAGE_CHATS_KEY, JSON.stringify(messages));
     } catch (e) {
@@ -48,33 +52,68 @@ export function ChatProvider({ children }) {
 
   // Supabase Realtime Channel subscription for messages if Supabase is connected
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase || !currentUser) return;
+    if (!isSupabaseConfigured || !supabase || !currentUserId) return;
+
+    let mounted = true;
+    const userId = currentUserId;
+    const formatMessage = message => ({
+      id: message.id,
+      conversationId: message.conversation_id || [message.sender_id, message.receiver_id].sort().join(':'),
+      senderId: message.sender_id,
+      senderName: message.sender_name || 'Teammate',
+      senderAvatar: message.sender_avatar || '',
+      receiverId: message.receiver_id,
+      text: message.text || '',
+      timestamp: message.created_at
+        ? new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : 'Just now',
+      createdAt: message.created_at
+    });
+
+    const loadMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`sender_id.eq.${userId},receiver_id.eq.${userId}`)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        if (mounted) showToast(`Could not load messages: ${error.message}`, 'warning');
+        return;
+      }
+
+      if (mounted) {
+        setMessages(previous => {
+          const byId = new Map((data || []).map(message => {
+            const formatted = formatMessage(message);
+            return [formatted.id, formatted];
+          }));
+          previous.forEach(message => {
+            if (!byId.has(message.id)) byId.set(message.id, message);
+          });
+          return Array.from(byId.values()).sort((a, b) =>
+            new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+          );
+        });
+      }
+    };
 
     let channel;
     try {
       channel = supabase
-        .channel(`chat-realtime-${currentUser.id}`)
+        .channel(`chat-realtime-${userId}`)
         .on(
           'postgres_changes',
           {
             event: 'INSERT',
             schema: 'public',
             table: 'messages',
-            filter: `receiver_id=eq.${currentUser.id}`
+            filter: `receiver_id=eq.${userId}`
           },
           (payload) => {
             const newMsg = payload.new;
             if (newMsg) {
-              const formatted = {
-                id: newMsg.id || `msg-${Date.now()}`,
-                conversationId: newMsg.conversation_id || [newMsg.sender_id, newMsg.receiver_id].sort().join(':'),
-                senderId: newMsg.sender_id,
-                senderName: newMsg.sender_name || 'Teammate',
-                senderAvatar: newMsg.sender_avatar || '',
-                receiverId: newMsg.receiver_id,
-                text: newMsg.text || newMsg.content || '',
-                timestamp: newMsg.created_at ? new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'
-              };
+              const formatted = formatMessage(newMsg);
               setMessages(prev => {
                 if (prev.some(m => m.id === formatted.id)) return prev;
                 return [...prev, formatted];
@@ -82,17 +121,26 @@ export function ChatProvider({ children }) {
             }
           }
         )
-        .subscribe();
+        .subscribe(status => {
+          if (!mounted) return;
+          setRealtimeConnected(status === 'SUBSCRIBED');
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            showToast('Realtime messaging could not connect. Messages may be delayed.', 'warning');
+          }
+        });
     } catch (err) {
-      console.warn('Realtime channel subscribe failed:', err);
+      showToast(`Realtime messaging is unavailable: ${err.message}`, 'warning');
     }
+    void loadMessages();
 
     return () => {
+      mounted = false;
+      setRealtimeConnected(false);
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [currentUser]);
+  }, [currentUserId, showToast]);
 
   // Compute conversation partner ID helper
   const getConversationId = useCallback((userAId, userBId) => {
@@ -101,7 +149,10 @@ export function ChatProvider({ children }) {
 
   // Send a message
   const sendMessage = useCallback(async ({ receiverId, text, attachments = [] }) => {
-    if (!currentUser || !receiverId || !text.trim()) return null;
+    if (!currentUser || !receiverId || receiverId === currentUser.id || typeof text !== 'string' || !text.trim()) return null;
+    if (text.trim().length > 5000) {
+      throw new Error('Messages must be 5,000 characters or fewer.');
+    }
 
     const partner = users.find(u => u.id === receiverId);
     const convId = getConversationId(currentUser.id, receiverId);
@@ -122,13 +173,9 @@ export function ChatProvider({ children }) {
       attachments
     };
 
-    // Optimistically update local message list
-    setMessages(prev => [...prev, newMsg]);
-
-    // Send to Supabase if configured
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('messages').insert([{
+        const { data, error } = await supabase.from('messages').insert([{
           id: newMsg.id,
           conversation_id: convId,
           sender_id: currentUser.id,
@@ -137,12 +184,15 @@ export function ChatProvider({ children }) {
           receiver_id: receiverId,
           text: newMsg.text,
           created_at: now.toISOString()
-        }]);
+        }]).select('id').single();
+        if (error) throw error;
+        if (!data) throw new Error('The server did not confirm the message was sent.');
       } catch (err) {
-        console.warn('Could not persist message to Supabase:', err);
+        throw new Error(`Could not send message: ${err.message}`);
       }
     }
 
+    setMessages(prev => [...prev, newMsg]);
     return newMsg;
   }, [currentUser, users, getConversationId]);
 
@@ -205,7 +255,8 @@ export function ChatProvider({ children }) {
       setActivePartnerId,
       activeMessages,
       sendMessage,
-      openChatWith
+      openChatWith,
+      isRealtimeConnected
     }}>
       {children}
     </ChatContext.Provider>

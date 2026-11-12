@@ -62,18 +62,23 @@ export default function CreateProjectPage() {
     }
 
     setLoading(true);
-    await addProject({
-      title,
-      category,
-      description,
-      requiredSkills,
-      openSpots: Number(openSpots),
-      totalSpots: Number(openSpots) + 1,
-      deadline,
-    });
-    setLoading(false);
-
-    navigate('/projects');
+    try {
+      const project = await addProject({
+        title,
+        category,
+        description,
+        requiredSkills,
+        openSpots: Number(openSpots),
+        totalSpots: Number(openSpots) + 1,
+        deadline,
+      });
+      if (project) navigate('/projects');
+      else setError('The project could not be saved. Please try again.');
+    } catch (submitError) {
+      setError(submitError.message || 'The project could not be saved. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

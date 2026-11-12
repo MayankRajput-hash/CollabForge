@@ -1,8 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Compass, Lightbulb, Plus, Sparkles, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useProjects } from '../context/ProjectContext';
+
+const collaborators = [
+  { initials: 'JD', className: 'landing-avatar--coral' },
+  { initials: 'MK', className: 'landing-avatar--blue' },
+  { initials: 'AL', className: 'landing-avatar--yellow' },
+];
 
 export default function HomePage({ onOpenAuth, onOpenCreateProject }) {
   const { currentUser } = useAuth();
@@ -11,56 +17,96 @@ export default function HomePage({ onOpenAuth, onOpenCreateProject }) {
 
   return (
     <div className="landing-page">
-      <section className="landing-hero">
+      <section className="landing-hero" aria-labelledby="landing-heading">
         <div className="landing-kicker">
           <span className="landing-kicker-dot" />
-          A place to find your people
+          A little more building, together
         </div>
-        <h1>
-          Good work starts<br />
-          <span>with the right team.</span>
+        <h1 id="landing-heading">
+          Big ideas are better
+          <br />
+          <span>built together.</span>
         </h1>
         <p>
-          Find a project you care about, meet people who care about it too, and make something together.
+          Find your people, bring your skills, and turn that “what if?” into something real.
         </p>
         <div className="landing-actions">
-          <Link className="btn btn-primary landing-primary-action tab-pill" to="/projects">
-            Explore projects <ArrowRight size={16} />
+          <Link className="btn btn-primary landing-primary-action" to="/projects">
+            Find your next project <ArrowRight size={16} />
           </Link>
-          <Link className="btn btn-secondary tab-pill" to="/teammates">
-            Find collaborators
+          <Link className="btn btn-secondary landing-secondary-action" to="/teammates">
+            Meet your people <Users size={16} />
           </Link>
-          {currentUser ? (
-            <button className="btn btn-secondary tab-pill" onClick={onOpenCreateProject}>
-              Start a project
-            </button>
-          ) : (
-            <button className="btn btn-secondary tab-pill" onClick={() => onOpenAuth('signup')}>
-              Create your profile
-            </button>
-          )}
         </div>
-        <div className="landing-steps" aria-label="How it works">
-          <Link to="/projects" className="tab-pill" style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-            <b>01</b> Find a project &rarr;
+
+        <div className="landing-collab-stage" aria-label="A preview of people building together">
+          <div className="landing-orbit landing-orbit--outer" />
+          <div className="landing-orbit landing-orbit--inner" />
+          <span className="landing-orbit-dot landing-orbit-dot--one" />
+          <span className="landing-orbit-dot landing-orbit-dot--two" />
+          <span className="landing-orbit-dot landing-orbit-dot--three" />
+
+          <div className="landing-stage-note landing-stage-note--left">
+            <span className="landing-note-icon"><Lightbulb size={17} /></span>
+            <span className="landing-note-label">It starts with an idea</span>
+            <strong>What if we built it?</strong>
+          </div>
+
+          <div className="landing-stage-note landing-stage-note--right">
+            <div className="landing-avatar-stack" aria-hidden="true">
+              {collaborators.map(person => (
+                <span key={person.initials} className={`landing-avatar ${person.className}`}>
+                  {person.initials}
+                </span>
+              ))}
+              <span className="landing-avatar landing-avatar--add"><Plus size={13} /></span>
+            </div>
+            <strong>Different minds. One team.</strong>
+            <span className="landing-note-label">Your next collaborators are out there.</span>
+          </div>
+
+          <div className="landing-idea-card" aria-hidden="true">
+            <div className="landing-idea-spark"><Sparkles size={20} /></div>
+            <span className="landing-idea-eyebrow">A shared space to begin</span>
+            <strong>Make room<br />for great ideas.</strong>
+            <div className="landing-idea-tags">
+              <span>Imagine</span><span>Make</span><span>Share</span>
+            </div>
+          </div>
+
+          <div className="landing-stage-caption">
+            <Compass size={14} />
+            <span>There’s a place for what you can do.</span>
+          </div>
+        </div>
+
+        <div className="landing-steps" aria-label="How CollabForge works">
+          <Link to="/projects" className="landing-step">
+            <span className="landing-step-number">01</span>
+            <span><strong>Find a spark</strong><small>Explore projects worth building.</small></span>
+            <ArrowRight size={15} />
           </Link>
-          <Link to="/teammates" className="tab-pill" style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-            <b>02</b> Meet your team &rarr;
+          <Link to="/teammates" className="landing-step">
+            <span className="landing-step-number">02</span>
+            <span><strong>Find your people</strong><small>Meet makers with different skills.</small></span>
+            <ArrowRight size={15} />
           </Link>
-          <Link to={currentUser ? "/create-project" : "/signup"} className="tab-pill" style={{ color: 'inherit', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
-            <b>03</b> Get building &rarr;
-          </Link>
+          <button className="landing-step" onClick={currentUser ? onOpenCreateProject : () => onOpenAuth('signup')}>
+            <span className="landing-step-number">03</span>
+            <span><strong>Make it happen</strong><small>Bring an idea of your own to life.</small></span>
+            <ArrowRight size={15} />
+          </button>
         </div>
       </section>
 
       <section className="landing-projects" aria-labelledby="projects-heading">
         <div className="landing-section-heading">
           <div>
-            <span className="landing-eyebrow">A good place to start</span>
-            <h2 id="projects-heading">Projects looking for people</h2>
+            <span className="landing-eyebrow">The next great thing starts somewhere</span>
+            <h2 id="projects-heading">Ideas looking for a team.</h2>
           </div>
           <Link className="landing-text-link" to="/projects">
-            See all projects <ArrowRight size={15} />
+            Explore all projects <ArrowRight size={15} />
           </Link>
         </div>
 
@@ -75,7 +121,7 @@ export default function HomePage({ onOpenAuth, onOpenCreateProject }) {
                   <span className="landing-project-owner">Started by {project.ownerName}</span>
                 </div>
                 <div className="landing-project-skills">
-                  {project.requiredSkills.slice(0, 3).map(skill => (
+                  {(project.requiredSkills || []).slice(0, 3).map(skill => (
                     <span key={skill}>{skill}</span>
                   ))}
                 </div>
@@ -88,30 +134,19 @@ export default function HomePage({ onOpenAuth, onOpenCreateProject }) {
           </div>
         ) : (
           <div className="landing-empty-projects">
-            <p>No projects are listed yet.</p>
+            <div>
+              <span className="landing-empty-mark"><Lightbulb size={18} /></span>
+              <div>
+                <strong>Every great project starts with a first step.</strong>
+                <p>Put your idea out there and find the people to build it with.</p>
+              </div>
+            </div>
             <button className="landing-text-link" onClick={onOpenCreateProject}>
-              Start the first one <ArrowRight size={15} />
+              Start a project <ArrowRight size={15} />
             </button>
           </div>
         )}
 
-        {/* Quick Navigation Shortcuts for New Users */}
-        <div className="mt-12 p-6 rounded-2xl glass-panel border border-zinc-200/80 dark:border-zinc-800/80 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">New to CollabForge?</h3>
-            <p className="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Jump directly into finding teammates or showcase your own skills on your profile.
-            </p>
-          </div>
-          <div className="flex items-center gap-2.5 flex-wrap w-full sm:w-auto">
-            <Link to="/teammates" className="btn btn-secondary text-xs tab-pill">
-              Browse student profiles
-            </Link>
-            <Link to={currentUser ? "/profile" : "/signup"} className="btn btn-primary text-xs tab-pill">
-              {currentUser ? "View my profile" : "Get started free"} &rarr;
-            </Link>
-          </div>
-        </div>
       </section>
     </div>
   );

@@ -61,7 +61,7 @@ export function calculateCosineSimilarity(userSkills = [], targetSkills = []) {
  * 2. Technical niche alignment
  * 3. Availability match
  */
-export function computeCompatibilityScore(student, target, options = {}) {
+export function computeCompatibilityScore(student, target, _options = {}) {
   const studentSkills = student?.skills || [];
   const targetSkills = target?.skills || target?.requiredSkills || [];
 
