@@ -160,7 +160,7 @@ export function ChatProvider({ children }) {
     const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     const newMsg = {
-      id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      id: crypto.randomUUID(),
       conversationId: convId,
       senderId: currentUser.id,
       senderName: currentUser.name || 'You',
